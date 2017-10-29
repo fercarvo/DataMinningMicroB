@@ -12,20 +12,43 @@ var client = new Twitter({
 
 /* GET home page. */
 router.get("/:buscar", function(req, res, next) {
-	client.get('search/tweets', {count: 20 ,q: req.params.buscar}, function(error, tweets, response) {
-		var palabra = "ESPOL tuvo un dia muy duro, asdasdasd, asdasdasdd, RT, cancion canté cataremos cantamos"
-		var separators = [' ', ',', '.'];
-		var tokens = palabra.split(new RegExp(separators.join('|'), 'g'));
-		console.log(tokens)
-	   	res.send(tweets)
-	});
-	//res.render('index', { title: 'Express' })
 
+	var parameters = {
+		lang : "es", 
+		count : 100 ,
+		q : req.params.buscar,
+		result_type : "recent",
+		geocode : "-1.304115,-78.754185,200km"
+	}
 
+	client.get('search/tweets', parameters, function(error, tweets, response) {
 
+		if (error) {
+			console.log(error)
+			throw Error (error)
+		}
 
+		var data = []
+		var data_string = []
 
+		for (var tweet of tweets.statuses) {
+			delete tweet.metadata
+			delete tweet.source
+			delete tweet.entities
 
+			//data.push(tweet)
+			//data_string.push(tweet.text)
+			data_string.push({
+				tweet : tweet.text,
+				usuario : "@" + tweet.user.screen_name,
+				nombre : tweet.user.name 
+			})
+		}
+
+		console.log("# de tweets", data.length)
+
+	   	res.json(data_string)
+	})
 })
 
 module.exports = router;
