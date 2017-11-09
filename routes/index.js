@@ -60,15 +60,44 @@ router.get("/cache/1", function(req, res, next) {
 })
 
 router.get("/prueba/1", function(req, res, next) {
-	 
-	var resultado = snowball.stemword(['cantamos', 'cantaremos', ''], 'spanish')
-	console.log(resultado)
-	return res.json(stopwords)
-	//return res.send('El json esta mal');
+	var prueba = " Odebrech odebrech Jorge Glass perro, gato, garabato, perro perro ////////perro uno Actualmente, actualmente ademas ademas ademas, aDeMas dos tres https://gogole.com asdasdasd qwea dasdq wdqwdqw dqwd"
+	
+	/*prueba = prueba.toLowerCase(); //todo a minusculas
+	prueba = prueba.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '') //Se elimina URLs
+	array = prueba.match(/\b(\w+)\b/g) //Se convierte string a array de palabras
+
+	for (word of stopwords) { //Se elimina stopwords
+		var i = array.length
+		while (i--) {
+		    if (array[i] == word)
+		    	array.splice(i, 1)
+		}
+	}
+
+	array = snowball.stemword(array, 'spanish') //Se realiza el stemming*/
+
+	var resultado = cleaner(prueba, stopwords)
+
+	return res.json({string: prueba, resultado: resultado})
 })
 
 
+/*
+	Funcion que recibe un string y devuelve un array de palabras limpias
+*/
+function cleaner(string, stopwords) {
+	string = string.toLowerCase(); //todo a minusculas
+	string = string.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '') //Se elimina URLs
+	array = string.match(/\b(\w+)\b/g) //Se convierte string a array de palabras
 
-function cleanWord(word) {
-	if (true){}
+	for (word of stopwords) { //Se elimina stopwords
+		var i = array.length
+		while (i--) {
+		    if (array[i] == word)
+		    	array.splice(i, 1)
+		}
+	}
+
+	array = snowball.stemword(array, 'spanish') //Se realiza el stemming
+	return array
 }
