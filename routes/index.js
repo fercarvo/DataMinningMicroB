@@ -1,54 +1,74 @@
-var express = require('express');
-var router = express.Router();
+var router = require('express').Router()
+var fs = require('fs')
+var body = require('body-parser');
+
+module.exports = router;
+
 var Twitter = require('twitter');
 var config = require('../config.json')
+var stopwords = require('../DB/stopwords.json')
+var snowball = require('node-snowball')
+ 
+var client = new Twitter(config)
 
-var client = new Twitter({
-	consumer_key: config.consumer_key,
-	consumer_secret: config.consumer_secret,
-	access_token_key: config.access_token_key,
-	access_token_secret: config.access_token_secret
-})
 
-/* GET home page. */
 router.get("/:buscar", function(req, res, next) {
 
 	var parameters = {
 		lang : "es", 
-		count : 100 ,
+		count : req.query.count,
 		q : req.params.buscar,
 		result_type : "recent",
 		geocode : "-1.304115,-78.754185,200km"
 	}
 
-	client.get('search/tweets', parameters, function(error, tweets, response) {
+	client.get("search/tweets", parameters)
+		.then(function(tweets, response) {
 
-		if (error) {
-			console.log(error)
-			throw Error (error)
-		}
+			var data = []
+			var data_string = []
 
-		var data = []
-		var data_string = []
+			for (var tweet of tweets.statuses) {
+				delete tweet.metadata
+				delete tweet.source
+				delete tweet.entities
 
-		for (var tweet of tweets.statuses) {
-			delete tweet.metadata
-			delete tweet.source
-			delete tweet.entities
+				//data.push(tweet)
+				//data_string.push(tweet.text)
+				data_string.push({
+					tweet : tweet.text,
+					usuario : "@" + tweet.user.screen_name,
+					nombre : tweet.user.name 
+				})
+			}
 
-			//data.push(tweet)
-			//data_string.push(tweet.text)
-			data_string.push({
-				tweet : tweet.text,
-				usuario : "@" + tweet.user.screen_name,
-				nombre : tweet.user.name 
-			})
-		}
+			fs.writeFileSync('DB/storage.json', JSON.stringify(data_string), 'utf8')
 
-		console.log("# de tweets", data.length)
+			return res.json(data_string)
 
-	   	res.json(data_string)
-	})
+		})
+		.catch(function (error){
+			return next(error)
+		})
 })
 
-module.exports = router;
+router.get("/cache/1", function(req, res, next) {
+
+	var data = JSON.parse(fs.readFileSync('DB/storage.json', 'utf8'))
+
+	return res.json(data)
+})
+
+router.get("/prueba/1", function(req, res, next) {
+	 
+	var resultado = snowball.stemword(['cantamos', 'cantaremos', ''], 'spanish')
+	console.log(resultado)
+	return res.json(stopwords)
+	//return res.send('El json esta mal');
+})
+
+
+
+function cleanWord(word) {
+	if (true){}
+}
