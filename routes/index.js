@@ -126,7 +126,17 @@ router.get("/count", function(req, res, next) {
 })
 
 
+function processTweet(tweet, stopwords) {
+	var clean_tweet = cleaner(tweet.text, stopwords)
 
+	return {
+		id : tweet.id,
+		tweet : tweet.text,
+		clean_data : clean_tweet,
+		usuario : "@" + tweet.user.screen_name,
+		nombre : tweet.user.name 
+	}
+}
 
 
 /*
@@ -245,3 +255,15 @@ router.get("/test1", function(req, res, next) {
 	return res.send("Performance time: " + (Date.now() - begin)/1000 + "s")
 
 })
+
+
+/*client.stream('statuses/filter', {track: "odebrech,rafael correa,jorge glass,coima"}, function(stream) {
+
+	stream.on('data', function(tweet) {
+		console.log(processTweet(tweet, stopwords))
+	})
+
+	stream.on('error', function(error) {
+		console.log("error", error)
+	})
+})*/
