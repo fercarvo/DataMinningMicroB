@@ -1,11 +1,49 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-  </body>
+<html lang="es">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Visualización</title>
+    
+
+    <%- include styles.ejs %>
+    <link rel="stylesheet" type="text/css" href="/styles/vendor/nv.d3.min.css" />
+
+</head>
+<body class="page-dashboard" ng-app="app">
+    <!-- TopBar -->
+    <%- include topbar.ejs %>
+
+    <!-- TopBar -->
+    <div class="content-wrapper">
+
+        <%- include sidebarStyles.ejs %>
+
+        <div class="sidebar" id="sidebar_menu">
+            <ul class="sidebar-nav">
+                <li data-ripple class="open" ui-sref="grafico1" ui-sref-active="active">
+                    <a>
+                        <span>Visualización</span>
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+
+        <div style="overflow-y:auto;max-height:94vh">
+            <ui-view></ui-view>
+        </div>
+
+    </div>
+
+    <%- include scripts.ejs %>
+    <script src="/scripts/vendor/d3.min.js" charset="utf-8"></script>
+    <script src="/scripts/vendor/nv.d3.min.js"></script>
+    <script src="/scripts/vendor/angular-ndv3.min.js"></script>
+
+    <script src="/scripts/app/integradora.js"></script>
+
+</body>
 </html>

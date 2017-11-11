@@ -1,0 +1,77 @@
+<div style="background-color:#901F61;height:2px;width:100%;z-index:-1;"></div>
+<nav class="navbar navbar-fixed-top navbar-top" style="background-color:#901F61;margin-top:2px;height:45px">
+    <style>
+        #logout {
+            color: #901F61;
+            height: 50px;
+            width: 59px;
+            color: #fff;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        #menu {
+            cursor: pointer;
+            height: 50px;
+            width: 50px;
+            color: white; 
+            font-size: 20px;
+            text-align: center;
+            margin-top: 0px;
+        }
+
+        #contenedor {
+            color: #901F61;
+        }
+
+    </style>
+    <div id="contenedor" class="container-fluid">
+
+        <div class="navbar-header" >
+            <a onClick="document.location.reload();" class="navbar-brand">
+                <span style="color:white">Visualización</span>
+            </a>
+            <div data-ripple id="menu" class="sidebar-toggle" onclick="change()">
+                <span id="spanid" class="glyphicon glyphicon-chevron-left" style="padding-top:11px;"></span>
+            </div>
+        </div>
+
+        <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+                <div data-ripple id="logout" class="dropdown-toggle" data-toggle="dropdown" style="cursor: pointer">
+                    <span class="glyphicon glyphicon-user" style="padding-top:11px;"></span>
+                </div>
+
+                <ul style="width: 330px; right:10px; margin-top:5px;" class="dropdown-menu dropdown-menu-profile">
+                    <li style="background-color:#901F61; color:white;" class="dropdown-header">Detalles de la cuenta</li>
+                    <li style="background-color:#e2e1e1; color: black;">
+                        <div class="media" style="margin-bottom:1px;">
+                            <div class="media-left">
+                                <img src="#" class="media-object img-circle">
+                            </div>
+                            <div class="media-body">
+                                <h5 class="media-heading">asdas</h5>
+                            </div>
+                        </div>
+                    </li>
+                    <li style="background-color: #ececec;">
+                        <a data-ripple onClick="document.location.replace('logout');" style="cursor: pointer;">
+                            Cerrar sesi&oacute;n  <span class="glyphicon glyphicon-log-out"></span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+    </div>
+    <script type="text/javascript">
+        function change() {
+            if (document.getElementById("spanid").className == "glyphicon glyphicon-chevron-right") {
+                document.getElementById("spanid").className = "glyphicon glyphicon-chevron-left";
+            } else {
+                document.getElementById("spanid").className = "glyphicon glyphicon-chevron-right";
+            }
+        }
+    </script>
+    <a id="SimulateOpenLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+</nav>

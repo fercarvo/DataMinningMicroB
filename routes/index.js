@@ -257,6 +257,10 @@ router.get("/test1", function(req, res, next) {
 })
 
 
+router.get("/index", function(req, res, next){
+	res.render('index')
+})
+
 /*client.stream('statuses/filter', {track: "odebrech,rafael correa,jorge glass,coima"}, function(stream) {
 
 	stream.on('data', function(tweet) {
