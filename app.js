@@ -7,7 +7,6 @@ var bodyParser = require('body-parser');
 
 //var index = require('./routes/index');
 //var users = require('./routes/users');
-var routes = require('./routes/')
 var app = express();
 
 // view engine setup
@@ -23,7 +22,8 @@ app.use(favicon(__dirname + '/public/images/favicon.ico'))
 app.use(cookieParser());
 app.use(express.static(__dirname + '/public'));
 
-app.use('/', routes)
+app.use('/', require('./routes/index'))
+app.use('/', require('./routes/streaming'))
 //app.use('/', index);
 //app.use('/users', users);
 
