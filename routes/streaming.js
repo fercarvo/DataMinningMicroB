@@ -4,7 +4,7 @@ var config = require('../config.json')
 var stopwords = require('../DB/stopwords.json')
 var client = new Twitter(config)
 
-const { processTweet } = require('./process.js')
+const { processTweet } = require('../util/process.js')
 
 var stream_data = {
 	track: "odebrech,rafael correa,jorge glass,coima,peculado,petroecuador",

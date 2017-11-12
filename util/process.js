@@ -1,14 +1,21 @@
 var stopwords = require('../DB/stopwords.json')
 var snowball = require('node-snowball')
 var fs = require('fs')
+const { fork } = require('child_process')
+
 
 module.exports = {
 	processTweet: processTweet,
 	cleaner: cleaner,
-	storageTweets: storageTweets
+	storageTweets: storageTweets,
+	stopwords: stopwords,
+	longCompute: longCompute,
+	processPromise: processPromise
 }
 
-
+/*
+	Funcion que procesa un tweet y lo devuelve limpio
+*/
 function processTweet(tweet, stopwords) {
 	var clean_tweet = cleaner(tweet.text, stopwords)
 
@@ -76,5 +83,35 @@ function storageTweets (path, new_tweets) {
 			})
 
 		}
+	})
+}
+
+/*
+	Simulador de procesamiento de CPU
+*/
+function longCompute(text) {
+	var sum = 1
+	var cantidad = 100000
+	for (var i = 0; i < cantidad; i++) {
+		sum+=1
+		console.log(sum + text)
+	}
+
+	return sum
+}
+
+/*
+	Función que ejecuta un proceso con la sintaxis de promises
+*/
+function processPromise (path, data) {
+	return new Promise(function(resolve, reject){
+		var child = fork(path)
+
+		child.send(data)
+
+		child.on("message", function (result){
+			resolve(result)
+			child.kill()
+		})
 	})
 }
