@@ -13,37 +13,68 @@
 
 </head>
 <body class="page-dashboard" ng-app="app">
-    <!-- TopBar -->
-    <%- include topbar.ejs %>
 
-    <!-- TopBar -->
-    <div class="content-wrapper">
-
-        <%- include sidebarStyles.ejs %>
-
-        <div class="sidebar" id="sidebar_menu">
-            <ul class="sidebar-nav">
-                <li data-ripple class="open" ui-sref="grafico1" ui-sref-active="active">
-                    <a>
-                        <span>Visualización</span>
-                    </a>
-                </li>
-
-            </ul>
+    <header>
+    <ul id="slide-out" class="side-nav fixed grey lighten-2">
+        <br>
+        <li><a href="#!" class="teal-text">Extracción</a></li>
+        <li><a href="#!" class="teal-text">Visualización</a></li>
+    </ul>
+        <div class="navbar-fixed">
+        <nav>
+            <div class="nav-wrapper teal">
+              <a data-activates="slide-out" class="button-collapse brand-logo">Visualizador</a>
+              <ul id="nav-mobile" class="left hide-on-med-and-down">
+                <li><a href="#!">Extracción</a></li>
+                <li><a href="#!">Visualización</a></li>
+              </ul>
+            </div>
+        </nav>
         </div>
+    </header>   
 
-        <div style="overflow-y:auto;max-height:94vh">
+        
+
+
+    <main>
+        <div class="container grafico">
             <ui-view></ui-view>
         </div>
+    </main>
 
-    </div>
+    <footer class="page-footer teal">
+        <div class="page-footer container teal">
+            <div class="row">
+                <div class="col l6 s12">
+                <ul>
+                    <li><a class="white-text" href="http://www.espol.edu.ec/" target="_blank">ESPOL</a></li>
+                    <li><a class="white-text" href="https://github.com/fercarvo" target="_blank">Edgar Carvajal</a></li>
+                    <li><a class="white-text" href="https://github.com/wjvelez" target="_blank">Washington Vélez</a></li>
+                </ul> 
+                </div>
+                <div class="col l3 s12 right">
+                    <h5 class="white-text"><b>Documentaci&oacute;n</b></h5>
+                    <ul>
+                    <li><a class="white-text" target="_blank" href="https://github.com/fercarvo/DataMinningMicroB">Repositorio GIT</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copyright teal">
+            <div class="container">
+                © 2017 Copyright
+            </div>
+        </div>
+    </footer>
 
-    <%- include scripts.ejs %>
-    <script src="/scripts/vendor/d3.min.js" charset="utf-8"></script>
-    <script src="/scripts/vendor/nv.d3.min.js"></script>
-    <script src="/scripts/vendor/angular-ndv3.min.js"></script>
 
-    <script src="/scripts/app/integradora.js"></script>
+
+<%- include scripts.ejs %>
+<script src="/scripts/vendor/d3.min.js" charset="utf-8"></script>
+<script src="/scripts/vendor/nv.d3.min.js"></script>
+<script src="/scripts/vendor/angular-ndv3.min.js"></script>
+
+<script src="/scripts/app/integradora.js"></script>
 
 </body>
 </html>
