@@ -10,25 +10,32 @@
     display: flex;
     flex-direction: column;
   }
+  
+  main, footer {
+    padding-left: 300px;
+  }
+  
   main {
     flex: 1 0 auto;
   }
-	header, main, footer {
-    padding-left: 300px;
-  }
+  
   footer{
     padding: 0 auto;
   }
-	ui-view{
+	
+  ui-view{
 		padding-left: 2%;
 		padding-right: 2%;
 	}
+  
+  footer.page-footer {
+    margin: 0;
+  }
+
+  
   @media only screen and (max-width : 992px) {
     header, main, footer {
       padding-left: 0;
     }
-  }
-  footer.page-footer {
-    margin: 0;
   }
 </style>
