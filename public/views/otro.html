@@ -1,1 +1,17 @@
-<h1>Otro.....</h1>
+<div>
+	<table>
+        <thead>
+          <tr>
+              <th>Usuario</th>
+              <th>Tweet</th>
+          </tr>
+        </thead>
+
+        <tbody>
+			<tr ng-repeat="tweet in tweets">
+				<td>{{tweet.usuario}}</td>
+				<td>{{tweet.tweet}}</td>
+			</tr>
+        </tbody>
+      </table>
+</div>

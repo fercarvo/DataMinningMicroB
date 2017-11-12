@@ -18,8 +18,16 @@
     .run(["$state", "$http", "$templateCache", function ($state, $http, $templateCache) {
         $state.go("grafico1")
     }])
-    .controller('otro', [function(){
-        console.log("en otro")
+    .controller('otro', ["$scope", "$state", function($scope, $state){
+        var socket = io('http://localhost:3001')
+        $scope.tweets = []
+
+        socket.on('tweet', function (tweet) {
+            //console.log($scope.tweets)
+            $scope.tweets.push(tweet)
+            $scope.$apply();
+            //socket.emit('my other event', { my: 'data' });
+        })
     }])
     .controller('grafico1', ["$scope", "$state", "$http", function ($scope, $state, $http) {
 

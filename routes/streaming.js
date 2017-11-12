@@ -6,21 +6,36 @@ var client = new Twitter(config)
 
 const { processTweet } = require('../util/process.js')
 
+var app = require('http').createServer()
+var io = require('socket.io')(app);
+var fs = require('fs');
+
+app.listen(3001);
+
 var stream_data = {
 	track: "odebrech,rafael correa,jorge glass,coima,peculado,petroecuador",
 	geocode : "-1.304115,-78.754185,200km"
 } 
 
-client.stream('statuses/filter', stream_data, function(stream) {
+io.on('connection', function (socket) {
+
+	setInterval(function() {
+		socket.emit('tweet', {usuario: "@23423423", tweet: new Date() + "Hola mundo bla bla bla bla bla"})
+	}, 2000)
+	
+	/*var stream = client.stream('statuses/filter', stream_data)
 
 	stream.on('data', function(tweet) {
-		console.log(processTweet(tweet, stopwords))
+		socket.emit('tweet', processTweet(tweet, stopwords))
 	})
 
 	stream.on('error', function(error) {
 		console.log("error", error)
-	})
-})	
+	})*/
+	/*socket.on('my other event', function (data) {
+		console.log(data);
+	})*/
+})
 
 
 module.exports = router;
