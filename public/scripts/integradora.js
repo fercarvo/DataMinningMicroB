@@ -5,9 +5,9 @@
                 templateUrl: 'views/grafico.html',
                 controller: 'grafico1'
             })
-            .state('otro', {
-                templateUrl: 'views/otro.html',
-                controller: 'otro'
+            .state('listener', {
+                templateUrl: 'views/stream.html',
+                controller: 'listener'
             })
         //False en modo de produccion
         /*$compileProvider.debugInfoEnabled(false)
@@ -18,7 +18,7 @@
     .run(["$state", "$http", "$templateCache", function ($state, $http, $templateCache) {
         $state.go("grafico1")
     }])
-    .controller('otro', ["$scope", "$state", function($scope, $state){
+    .controller('listener', ["$scope", "$state", function($scope, $state){
         var socket = io('http://localhost:3001')
         $scope.tweets = []
 
@@ -27,6 +27,9 @@
             $scope.tweets.push(tweet)
             $scope.$apply();
             //socket.emit('my other event', { my: 'data' });
+        })
+        $scope.$on('$destroy', function(){
+            socket.close()
         })
     }])
     .controller('grafico1', ["$scope", "$state", "$http", function ($scope, $state, $http) {
