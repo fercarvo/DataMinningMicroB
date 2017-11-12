@@ -1,5 +1,36 @@
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto">
-<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<!-- <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> -->
 <link rel="stylesheet" type="text/css" href="/styles/vendor/wiseboard/main.min.css" >
 <link rel="stylesheet" type="text/css" href="/styles/vendor/wiseboard/admin.min.css">
-<style> body { font-family: 'Roboto', sans-serif; max-height: 100%; overflow: hidden } </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>	
+  body {
+    font-family: 'Roboto', sans-serif;
+    max-height: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  main {
+    flex: 1 0 auto;
+  }
+	header, main, footer {
+    padding-left: 300px;
+  }
+  footer{
+    padding: 0 auto;
+  }
+	ui-view{
+		padding-left: 2%;
+		padding-right: 2%;
+	}
+  @media only screen and (max-width : 992px) {
+    header, main, footer {
+      padding-left: 0;
+    }
+  }
+  footer.page-footer {
+    margin: 0;
+  }
+</style>

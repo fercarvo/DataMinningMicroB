@@ -6,9 +6,9 @@
                 controller: 'grafico1'
             })
         //False en modo de produccion
-        $compileProvider.debugInfoEnabled(false)
+        /*$compileProvider.debugInfoEnabled(false)
         $compileProvider.commentDirectivesEnabled(false)
-        $compileProvider.cssClassDirectivesEnabled(false)
+        $compileProvider.cssClassDirectivesEnabled(false)*/
         
     }])
     .run(["$state", "$http", "$templateCache", function ($state, $http, $templateCache) {
@@ -47,7 +47,7 @@
                 zoom: {
                     enabled: true,
                     scaleExtent: [1, 10],
-                    useFixedDomain: false,
+                    useFixedDomain: true,
                     useNiceScale: false,
                     horizontalOff: false,
                     verticalOff: true,
