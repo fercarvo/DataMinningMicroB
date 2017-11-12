@@ -15,25 +15,19 @@
 <body class="page-dashboard" ng-app="app">
 
     <header>
-    <ul id="slide-out" class="side-nav fixed grey lighten-2">
-        <br>
-        <li><a href="#!" class="teal-text">Extracción</a></li>
-        <li><a href="#!" class="teal-text">Visualización</a></li>
-    </ul>
+        <ul id="slide-out" class="side-nav fixed grey lighten-2">
+            <br>
+            <li ui-sref="grafico1" ui-sref-active="active"><a href="#" class="teal-text">Grafico</a></li>
+            <li ui-sref="otro" ui-sref-active="active"><a href="#" class="teal-text">Otro</a></li>
+        </ul>
         <div class="navbar-fixed">
         <nav>
             <div class="nav-wrapper teal">
               <a data-activates="slide-out" class="button-collapse brand-logo">Visualizador</a>
-              <ul id="nav-mobile" class="left hide-on-med-and-down">
-                <li><a href="#!">Extracción</a></li>
-                <li><a href="#!">Visualización</a></li>
-              </ul>
             </div>
         </nav>
         </div>
-    </header>   
-
-        
+    </header>        
 
 
     <main>
@@ -74,7 +68,7 @@
 <script src="/scripts/vendor/nv.d3.min.js"></script>
 <script src="/scripts/vendor/angular-ndv3.min.js"></script>
 
-<script src="/scripts/app/integradora.js"></script>
+<script src="/scripts/integradora.js"></script>
 
 </body>
 </html>

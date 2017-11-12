@@ -5,6 +5,10 @@
                 templateUrl: 'views/grafico.html',
                 controller: 'grafico1'
             })
+            .state('otro', {
+                templateUrl: 'views/otro.html',
+                controller: 'otro'
+            })
         //False en modo de produccion
         /*$compileProvider.debugInfoEnabled(false)
         $compileProvider.commentDirectivesEnabled(false)
@@ -13,6 +17,9 @@
     }])
     .run(["$state", "$http", "$templateCache", function ($state, $http, $templateCache) {
         $state.go("grafico1")
+    }])
+    .controller('otro', [function(){
+        console.log("en otro")
     }])
     .controller('grafico1', ["$scope", "$state", "$http", function ($scope, $state, $http) {
 
