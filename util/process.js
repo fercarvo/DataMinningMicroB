@@ -152,3 +152,106 @@ function JPP (X, R){
 	var H = nj.random([k,v1]) //Matriz aleatoria de k x v1
 	var M = nj.random([k,k]) //Matriz aleatoria de k x k
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---hacer merge
+/*
+
+function Obj = computeLoss(X,W,H,M,R,reg_norm,reg_temp, trXX, I)
+    WtW = W' * W;
+    MR = M*R;
+    WH = W * H;
+    WMR = W * MR;    
+    tr1 = trXX - 2*tr(X,WH) + tr(WH,WH);
+    tr2 = trXX - 2*tr(X,WMR) + tr(WMR,WMR);
+    tr3 = reg_temp*(tr(M,M) - 2*trace(M)+ trace(I));
+    tr4 = reg_norm*(sum(sum(H)) + sum(sum(W)) + sum(sum(M)) );
+    Obj = tr1+ tr2 + tr3+ tr4;    
+end
+
+*/
+
+
+function ComputeLoss(X, W, H, M, R, reg_norm, reg_temp, trXX, I){
+	var WtW = nj.dot(W.T, W)
+	var MR = nj.dot(M, R)
+	var WH = nj.dot(W, H)
+	var WMR = nj.dot(W, MR)
+	var tr1 = trXX - (2*tr(X, WH)) + tr(WH, WH)
+	var tr2 = trXX - (2*tr(X, WMR)) + tr(WMR, WMR)
+	var tr3 = reg_temp * (tr(M, N) - (2* M.trace()) + I.trace())
+	var tr4 = reg_norm * (H.sum() + W.sum() + M.sum())
+	var Obj = tr1 + tr2 + tr3 + tr4
+
+	return Obj
+
+}
+
+
+ M = M .* ( ((WtX*R') + (alpha*I)) ./ max( (WtW*M*R*R') + ( (alpha)*M)+lambda,eps) );      
+
+ nj.divide((nj.dot(aplha, I), max(nj.dot)
+ var M = (nj.dot(WtX, R.T)
