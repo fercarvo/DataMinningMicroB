@@ -2,6 +2,7 @@ var stopwords = require('../DB/stopwords.json')
 var snowball = require('node-snowball')
 var fs = require('fs')
 const { fork } = require('child_process')
+var nj = require('numjs')
 
 
 module.exports = {
@@ -114,4 +115,40 @@ function processPromise (path, data) {
 			child.kill()
 		})
 	})
+}
+
+
+/*
+	Funcion tr, recibe 2 matrices de la misma longitud y devuelve la otra con la multiplicacion
+	de sus terminos
+*/
+function tr(A, B) {
+	A = A.tolist()
+	B = B.tolist()
+
+	var suma = 0
+	var multiplicacion;
+
+	for (var fila = 0; fila < A.length; fila++) {
+		for (var columna = 0; columna < A[0].length; columna++) {
+			multiplicacion = A[fila][columna] * B[fila][columna] //Se guarda la multiplicacion para ir sumando
+			A[fila][columna] = multiplicacion
+			suma += multiplicacion		
+		}
+	}
+
+	return nj.array(A)
+}
+
+
+/*
+	Algoritmo JPP que recibe matrices
+*/
+function JPP (X, R){
+	var k = 6 //valor dado en el paper
+	var n = b.shape[0] // # filas X
+	var v1 = b.shape[1] // # columnas X
+	var W = nj.random([n,k]) //Matriz aleatoria de n x k
+	var H = nj.random([k,v1]) //Matriz aleatoria de k x v1
+	var M = nj.random([k,k]) //Matriz aleatoria de k x k
 }
