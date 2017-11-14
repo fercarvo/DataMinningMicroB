@@ -42,9 +42,15 @@ router.get("/test1", function(req, res, next) {
 
 //Pruebas
 
-var b = nj.array([[2,2,2], [4,4,5]])
+var b = nj.array([[2,2,2], [5,5,5]])
 
-var c = nj.array([[2,2,2], [10,10,11]])
+var c = nj.array([[2,2,2], [5,5,5]])
+
+
+console.log("dot", b.add(c))
+
+var xx = b.multiply(100)
+console.log("max", (c, 5).max())
 
 console.log("filas",b.shape[0])
 console.log("columnas",b.shape[1])

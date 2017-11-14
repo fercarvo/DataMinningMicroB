@@ -123,32 +123,65 @@ function processPromise (path, data) {
 	de sus terminos
 */
 function tr(A, B) {
-	A = A.tolist()
-	B = B.tolist()
-
-	var suma = 0
-	var multiplicacion;
-
-	for (var fila = 0; fila < A.length; fila++) {
-		for (var columna = 0; columna < A[0].length; columna++) {
-			multiplicacion = A[fila][columna] * B[fila][columna] //Se guarda la multiplicacion para ir sumando
-			A[fila][columna] = multiplicacion
-			suma += multiplicacion		
-		}
-	}
-
-	return nj.array(A)
+	var mult = A.multiply(B)
+	return mult.sum()
 }
-
 
 /*
 	Algoritmo JPP que recibe matrices
+
+
+	while((abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)),
+
+     J= M*R;
+     W =  W .* ( X*(H'+J')  ./ max(W*((J*J')+(H*H')+ lambda),eps) ); % eps = 2^(-52)
+     WtW =W'*W;
+     WtX = W'*X;     
+     M = M .* ( ((WtX*R') + (alpha*I)) ./ max( (WtW*M*R*R') + ( (alpha)*M)+lambda,eps) );      
+     H = H .* (WtX./max(WtW*H+lambda,eps));
+     prevObj = Obj;
+     Obj = computeLoss(X,W,H,M,R,lambda,alpha, trXX, I);
+     delta = abs(prevObj-Obj);
+ 	 ObjHistory(itNum) = Obj;
+ 	 if verbose,
+            fprintf('It: %d \t Obj: %f \t Delta: %f  \n', itNum, Obj, delta); 
+     end
+  	 itNum = itNum + 1;
+end
 */
 function JPP (X, R){
+	var lambda = 2
+	var epsilon = 33
+	var maxiter = 0
 	var k = 6 //valor dado en el paper
 	var n = b.shape[0] // # filas X
 	var v1 = b.shape[1] // # columnas X
 	var W = nj.random([n,k]) //Matriz aleatoria de n x k
 	var H = nj.random([k,v1]) //Matriz aleatoria de k x v1
 	var M = nj.random([k,k]) //Matriz aleatoria de k x k
+	var I = nj.identity(k) //Matriz identidad k x k
+	var Ilambda = nj.dot(I, lambda) //Multiplicacion matricial
+	var trXX = tr(X, X) //..
+
+	//iteration counters
+	var itNum = 1
+	var Obj = 10000000
+
+	var prevObj = 2*Obj
+	var J, 
+	var M_1, M_2, M_3
+	var WtW, WtX
+
+	while ((Math.abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)) {
+		J = nj.dot(M, R) // Multiplicacion matricial
+		//W =  W .* ( M_1  ./ max(W*(M_2),eps) ); % eps = 2^(-52)
+		M_1 = nj.dot(X, (H.T).add(J.T) )//X*(H'+J')
+		M_2 = ( (nj.dot(J, J.T)).add(nj.dot(H, H.T)) ).add(lambda)   //((J*J')+(H*H')+ lambda)
+		M_3 = [[  (nj.dot(W, M_2)).max()  ,  2^(-52)  ]]
+
+		W = W.multiply( M_1.divide(  nj.array(M_3.max(), 2^(-52)))
+		WtW = nj.dot( W.T , W)//W'*W
+		WtX = nj.dot( W.T, X) //W'*X;
+
+	}	
 }
