@@ -19,6 +19,7 @@ var stream_data = {
 
 io.on('connection', function (socket) {
 
+	
 	setInterval(function() {
 		socket.emit('tweet', {usuario: "@23423423", tweet: new Date() + "Hola mundo bla bla bla bla bla"})
 	}, 2000)
@@ -32,6 +33,7 @@ io.on('connection', function (socket) {
 	stream.on('error', function(error) {
 		console.log("error", error)
 	})*/
+
 	/*socket.on('my other event', function (data) {
 		console.log(data);
 	})*/
