@@ -168,9 +168,12 @@ function JPP (X, R){
 	var Obj = 10000000
 
 	var prevObj = 2*Obj
-	var J, 
-	var M_1, M_2, M_3
-	var WtW, WtX
+	var J
+	var M_1
+	var M_2
+	var M_3
+	var WtW
+	var WtX
 
 	while ((Math.abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)) {
 		J = nj.dot(M, R) // Multiplicacion matricial
@@ -179,7 +182,7 @@ function JPP (X, R){
 		M_2 = ( (nj.dot(J, J.T)).add(nj.dot(H, H.T)) ).add(lambda)   //((J*J')+(H*H')+ lambda)
 		M_3 = [[  (nj.dot(W, M_2)).max()  ,  2^(-52)  ]]
 
-		W = W.multiply( M_1.divide(  nj.array(M_3.max(), 2^(-52)))
+		W = W.multiply( M_1.divide(  nj.array(M_3.max(), 2^(-52))))
 		WtW = nj.dot( W.T , W)//W'*W
 		WtX = nj.dot( W.T, X) //W'*X;
 
