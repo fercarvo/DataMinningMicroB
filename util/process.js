@@ -272,9 +272,9 @@ function ComputeLoss(X, W, H, M, R, reg_norm, reg_temp, trXX, I){
 	var MR = nj.dot(M, R)
 	var WH = nj.dot(W, H)
 	var WMR = nj.dot(W, MR)
-	var tr1 = trXX - (2*tr(X, WH)) + tr(WH, WH)
-	var tr2 = trXX - (2*tr(X, WMR)) + tr(WMR, WMR)
-	var tr3 = reg_temp * (tr(M, N) - (2* M.trace()) + I.trace())
+	var tr1 = trXX - ((2*tr(X, WH)) + (tr(WH, WH)))
+	var tr2 = trXX - ((2*tr(X,WMR)) + (tr(WMR, WMR)))
+	var tr3 = reg_temp * ( tr(M,N) - (2 * M.diag().sum()) + (I.diag().sum()) )
 	var tr4 = reg_norm * (H.sum() + W.sum() + M.sum())
 	var Obj = tr1 + tr2 + tr3 + tr4
 
