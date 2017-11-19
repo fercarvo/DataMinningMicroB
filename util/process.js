@@ -11,7 +11,8 @@ module.exports = {
 	storageTweets: storageTweets,
 	stopwords: stopwords,
 	longCompute: longCompute,
-	processPromise: processPromise
+	processPromise: processPromise,
+	JPP: JPP
 }
 
 /*
@@ -124,45 +125,53 @@ function processPromise (path, data) {
 */
 function tr(A, B) {
 	var mult = A.multiply(B)
+	//console.log("\nAB", A, B)
 	return mult.sum()
 }
 
 /*
-	Algoritmo JPP que recibe matrices
-
+	n = size(X, 1); %filas X
+	v1 = size(X, 2); %columnas X
+	W  = abs(rand(n, k)); %genera matriz con valores aleatorios de (n filas) x (k columnas, no sabemos el valor de k)
+	H = abs(rand(k, v1)); %genera matriz random de (k filas)x(vi columnas) 
+	M = abs(rand(k,k)); %genera matriz random de (k filas) x (k columas)
+	I =speye(k,k); %Matriz identidad (k filas)x(k columnas)
+	Ilambda = I*lambda; %multiplica la identidad I por lam
+	trXX = tr(X, X); %multiplicacion termino por termino y despues suma filas y despues columnas, queda escalar
+	itNum = 1;
+	Obj = 10000000;
+	prevObj = 2*Obj;
 
 	while((abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)),
-
-     J= M*R;
-     W =  W .* ( X*(H'+J')  ./ max(W*((J*J')+(H*H')+ lambda),eps) ); % eps = 2^(-52)
-     WtW =W'*W;
-     WtX = W'*X;     
-     M = M .* ( ((WtX*R') + (alpha*I)) ./ max( (WtW*M*R*R') + ( (alpha)*M)+lambda,eps) );      
-     H = H .* (WtX./max(WtW*H+lambda,eps));
-     prevObj = Obj;
-     Obj = computeLoss(X,W,H,M,R,lambda,alpha, trXX, I);
-     delta = abs(prevObj-Obj);
- 	 ObjHistory(itNum) = Obj;
- 	 if verbose,
-            fprintf('It: %d \t Obj: %f \t Delta: %f  \n', itNum, Obj, delta); 
-     end
-  	 itNum = itNum + 1;
-end
+		J= M*R;
+		W =  W .* ( X*(H'+J')  ./ max(W*((J*J')+(H*H')+ lambda),eps) ); % eps = 2^(-52)
+		WtW =W'*W;
+		WtX = W'*X;     
+		M = M .* ( ((WtX*R') + (alpha*I)) ./ max( (WtW*M*R*R') + ( (alpha)*M)+lambda,eps) );      
+		H = H .* (WtX./max(WtW*H+lambda,eps));
+		prevObj = Obj;
+		Obj = computeLoss(X,W,H,M,R,lambda,alpha, trXX, I);
+		delta = abs(prevObj-Obj);
+		ObjHistory(itNum) = Obj;
+		if verbose,
+			fprintf('It: %d \t Obj: %f \t Delta: %f  \n', itNum, Obj, delta); 
+	    end
+	  		itNum = itNum + 1;
+	end
 */
-function JPP (X, R){
-	var alpha = 6
-	var lambda = 2
-	var epsilon = 33
-	var maxiter = 0
-	var verbose = true
-	var k = 6 //valor dado en el paper
-	var n = b.shape[0] // # filas X
-	var v1 = b.shape[1] // # columnas X
-	var W = nj.random([n,k]) //Matriz aleatoria de n x k
-	var H = nj.random([k,v1]) //Matriz aleatoria de k x v1
-	var M = nj.random([k,k]) //Matriz aleatoria de k x k
+function JPP (X, R, k, alpha, lambda, epsilon, maxiter, verbose){
+	var n = X.shape[0] // # filas X
+	var v1 = X.shape[1] // # columnas X
+	//var W = nj.random([n,k]) //Matriz aleatoria de n x k
+	//var H = nj.random([k,v1]) //Matriz aleatoria de k x v1
+	//var M = nj.random([k,k]) //Matriz aleatoria de k x k
+
+	var W = nj.array([[0.1,0.2,0.3], [0.1,0.2,0.3], [0.1,0.2,0.3]])
+	var H = nj.array([[0.01,0.02,0.03], [0.01,0.02,0.03], [0.01,0.02,0.03]])
+	var M = nj.array([[0.001,0.002,0.003], [0.001,0.002,0.003], [0.001,0.002,0.003]])
+
 	var I = nj.identity(k) //Matriz identidad k x k
-	var Ilambda = nj.dot(I, lambda) //Multiplicacion matricial
+	var Ilambda = I.multiply(lambda) //Multiplicacion matricial
 	var trXX = tr(X, X) //..
 
 	//iteration counters
@@ -192,47 +201,50 @@ function JPP (X, R){
 
 	var delta
 
+	var ObjHistory = []
+
 	while ((Math.abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)) {
+		//console.log("abs", Math.abs(prevObj-Obj))
+		//console.log("diferencia", prevObj-Obj)
+
 		J = nj.dot(M, R) // Multiplicacion matricial
 
 		//W =  W .* ( M_1  ./ max(W*(M_2),eps) ); % eps = 2^(-52)
 		W_1 = nj.dot(X, (H.T).add(J.T) )//X*(H'+J')
 		W_2 = ( ( nj.dot(J, J.T)).add( nj.dot(H, H.T)) ).add(lambda)   //((J*J')+(H*H')+ lambda) //
-		W_3 = ( nj.dot(W, W_2)).max()
-		W_4 = (function(){
-			if (W_3 < eps) //max( (WtW*M*R*R') + ((alpha)*M) + lambda, eps)
-				return eps
-			return W_3
-		})()
+		W_3 = nj.dot(W, W_2)
+		W_4 = maxMatlab(W_3, eps) //////////////////////////////////////////
 		W = W.multiply( W_1.divide( W_4 ))
 
 		WtW = nj.dot( W.T , W)//W'*W
 		WtX = nj.dot( W.T, X) //W'*X;
 
 		//M = M .* ( ((WtX*R') + (alpha*I)) ./ max( (WtW*M*R*R') + ( (alpha)*M)+lambda,eps) );
-		M_1 = ( nj.dot(WtX, R.T) ).add( nj.dot(alpha, I) )   //(WtX*R') + (alpha*I)
+		M_1 = ( nj.dot(WtX, R.T) ).add( I.multiply(alpha))   //(WtX*R') + (alpha*I)
 		M_2 = nj.dot( nj.dot( nj.dot(WtW, M) , R) , R.T) //(WtW*M*R*R')
-		M_3 = ( nj.dot(alpha, M)).add(lambda)  //( (alpha)*M) + lambda
-		M_4 = (M_2.add(M_3)).max()// (WtW*M*R*R') + ( (alpha)*M) + lambda
-		M_5 = (function(){
-			if (M_4 < eps) //max( (WtW*M*R*R') + ( (alpha)*M)+lambda,eps)
-				return eps
-			return M_4
-		})()
+		M_3 = ( M.multiply(alpha) ).add(lambda)  //( (alpha)*M) + lambda
+		M_4 = M_2.add(M_3)// (WtW*M*R*R') + ( (alpha)*M) + lambda
+		M_5 = maxMatlab(M_4, eps)
 		M = M.multiply( M_1.divide(M_5)) //M_1 ./ M_5
 
-		H_1 = ( ( nj.dot(WtW, H)).add(lambda)).max()//WtW*H+lambda
-		H_2 = (function(){
-			if (H_1 < eps)
-				return eps
-			return H_1
-		})()
+		//H = H .* (WtX./max(WtW*H+lambda,eps));
+		H_1 = ( nj.dot(WtW, H)).add(lambda)//WtW*H+lambda
+		H_2 = maxMatlab(H_1, eps)
 		H = H.multiply( WtX.divide(H_2) ) //H .* (WtX./max(H_1,eps));
+
+		//console.log("\nH", H)
 
 		prevObj = Obj
 		Obj = ComputeLoss(X,W,H,M,R,lambda,alpha, trXX, I)
+		//console.log("Obj", Obj)
 		delta = Math.abs(prevObj-Obj) //delta = abs(prevObj-Obj);
-		//ObjHistory(itNum) = Obj;
+		ObjHistory.push(Obj) //ObjHistory(itNum) = Obj;
+
+		//console.log("W", W)
+		//console.log("M", M)
+		//console.log("H", H)
+		//console.log("Obj", Obj)
+
 
 		/*
 		if verbose,
@@ -245,38 +257,68 @@ function JPP (X, R){
 			console.log("Delta: " + delta)
 		}
 
+
+
 		itNum++
+		//console.log("itnum", itNum)
+	}
+
+	return {
+		W: W.tolist(),
+		H: H.tolist(),
+		M: M.tolist(),
+		ObjHistory: ObjHistory
 	}	
 }
 
-// ---hacer merge
 /*
+	function Obj = computeLoss(X,W,H,M,R,reg_norm,reg_temp, trXX, I)
+	    WtW = W' * W;
+	    MR = M*R;
+	    WH = W * H;
+	    WMR = W * MR;    
+	    tr1 = trXX - 2*tr(X,WH) + tr(WH,WH);
+	    tr2 = trXX - 2*tr(X,WMR) + tr(WMR,WMR);
+	    tr3 = reg_temp*(tr(M,M) - 2*trace(M)+ trace(I));
+	    tr4 = reg_norm * (sum(sum(H)) + sum(sum(W)) + sum(sum(M)) );
+	    Obj = tr1+ tr2 + tr3+ tr4;    
+	end
 
-function Obj = computeLoss(X,W,H,M,R,reg_norm,reg_temp, trXX, I)
-    WtW = W' * W;
-    MR = M*R;
-    WH = W * H;
-    WMR = W * MR;    
-    tr1 = trXX - 2*tr(X,WH) + tr(WH,WH);
-    tr2 = trXX - 2*tr(X,WMR) + tr(WMR,WMR);
-    tr3 = reg_temp*(tr(M,M) - 2*trace(M)+ trace(I));
-    tr4 = reg_norm*(sum(sum(H)) + sum(sum(W)) + sum(sum(M)) );
-    Obj = tr1+ tr2 + tr3+ tr4;    
-end
+	X matriz
+	W matriz
+	H matriz
+	M matriz
+	R matriz
 
 */
-
-
 function ComputeLoss(X, W, H, M, R, reg_norm, reg_temp, trXX, I){
 	var WtW = nj.dot(W.T, W)
 	var MR = nj.dot(M, R)
 	var WH = nj.dot(W, H)
+	//console.log("\nH", H)
 	var WMR = nj.dot(W, MR)
-	var tr1 = trXX - ((2*tr(X, WH)) + (tr(WH, WH)))
-	var tr2 = trXX - ((2*tr(X,WMR)) + (tr(WMR, WMR)))
-	var tr3 = reg_temp * ( tr(M,N) - (2 * M.diag().sum()) + (I.diag().sum()) )
+
+	//console.log("..............WtW", WtW, "\nMR", MR, "\nWH", WH, "\nWMR", WMR)
+
+	var tr1 = trXX - (2*tr(X, WH)) + (tr(WH, WH))
+	var tr2 = trXX - (2*tr(X,WMR)) + (tr(WMR, WMR))
+	var tr3 = reg_temp * ( tr(M,M) - (2 * M.diag().sum()) + (I.diag().sum()) )
 	var tr4 = reg_norm * (H.sum() + W.sum() + M.sum())
 	var Obj = tr1 + tr2 + tr3 + tr4
 
+	//console.log("TR", tr1, tr2, tr3, tr4)
+
 	return Obj
+}
+
+function maxMatlab(matriz, escalar) {
+	var temp = matriz.tolist()
+	for (var i = 0; i < temp.length; i++) {
+		for (var j = 0; j < temp[0].length; j++) {
+			if (escalar >= temp[i][j])
+				temp[i][j] = escalar
+		}
+	}
+
+	return nj.array(temp)
 }
