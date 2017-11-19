@@ -150,9 +150,11 @@ function tr(A, B) {
 end
 */
 function JPP (X, R){
+	var alpha = 6
 	var lambda = 2
 	var epsilon = 33
 	var maxiter = 0
+	var verbose = true
 	var k = 6 //valor dado en el paper
 	var n = b.shape[0] // # filas X
 	var v1 = b.shape[1] // # columnas X
@@ -166,26 +168,84 @@ function JPP (X, R){
 	//iteration counters
 	var itNum = 1
 	var Obj = 10000000
+	var eps = 2^(-52)
 
 	var prevObj = 2*Obj
 	var J
-	var M_1
-	var M_2
-	var M_3
+
+	var W_1
+	var W_2
+	var W_3
+	var W_4
+
 	var WtW
 	var WtX
 
+	var M_1
+	var M_2
+	var M_3
+	var M_4
+	var M_5
+
+	var H_1
+	var H_2
+
+	var delta
+
 	while ((Math.abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)) {
 		J = nj.dot(M, R) // Multiplicacion matricial
-		//W =  W .* ( M_1  ./ max(W*(M_2),eps) ); % eps = 2^(-52)
-		M_1 = nj.dot(X, (H.T).add(J.T) )//X*(H'+J')
-		M_2 = ( (nj.dot(J, J.T)).add(nj.dot(H, H.T)) ).add(lambda)   //((J*J')+(H*H')+ lambda)
-		M_3 = [[  (nj.dot(W, M_2)).max()  ,  2^(-52)  ]]
 
-		W = W.multiply( M_1.divide(  nj.array(M_3.max(), 2^(-52))))
+		//W =  W .* ( M_1  ./ max(W*(M_2),eps) ); % eps = 2^(-52)
+		W_1 = nj.dot(X, (H.T).add(J.T) )//X*(H'+J')
+		W_2 = ( ( nj.dot(J, J.T)).add( nj.dot(H, H.T)) ).add(lambda)   //((J*J')+(H*H')+ lambda) //
+		W_3 = ( nj.dot(W, W_2)).max()
+		W_4 = (function(){
+			if (W_3 < eps) //max( (WtW*M*R*R') + ((alpha)*M) + lambda, eps)
+				return eps
+			return W_3
+		})()
+		W = W.multiply( W_1.divide( W_4 ))
+
 		WtW = nj.dot( W.T , W)//W'*W
 		WtX = nj.dot( W.T, X) //W'*X;
 
+		//M = M .* ( ((WtX*R') + (alpha*I)) ./ max( (WtW*M*R*R') + ( (alpha)*M)+lambda,eps) );
+		M_1 = ( nj.dot(WtX, R.T) ).add( nj.dot(alpha, I) )   //(WtX*R') + (alpha*I)
+		M_2 = nj.dot( nj.dot( nj.dot(WtW, M) , R) , R.T) //(WtW*M*R*R')
+		M_3 = ( nj.dot(alpha, M)).add(lambda)  //( (alpha)*M) + lambda
+		M_4 = (M_2.add(M_3)).max()// (WtW*M*R*R') + ( (alpha)*M) + lambda
+		M_5 = (function(){
+			if (M_4 < eps) //max( (WtW*M*R*R') + ( (alpha)*M)+lambda,eps)
+				return eps
+			return M_4
+		})()
+		M = M.multiply( M_1.divide(M_5)) //M_1 ./ M_5
+
+		H_1 = ( ( nj.dot(WtW, H)).add(lambda)).max()//WtW*H+lambda
+		H_2 = (function(){
+			if (H_1 < eps)
+				return eps
+			return H_1
+		})()
+		H = H.multiply( WtX.divide(H_2) ) //H .* (WtX./max(H_1,eps));
+
+		prevObj = Obj
+		Obj = ComputeLoss(X,W,H,M,R,lambda,alpha, trXX, I)
+		delta = Math.abs(prevObj-Obj) //delta = abs(prevObj-Obj);
+		//ObjHistory(itNum) = Obj;
+
+		/*
+		if verbose,
+            fprintf('It: %d \t Obj: %f \t Delta: %f  \n', itNum, Obj, delta); 
+     	end
+		*/
+		if (verbose) {
+			console.log("It: " + itNum)
+			console.log("Obj: " + Obj)
+			console.log("Delta: " + delta)
+		}
+
+		itNum++
 	}	
 }
 
@@ -220,9 +280,3 @@ function ComputeLoss(X, W, H, M, R, reg_norm, reg_temp, trXX, I){
 
 	return Obj
 }
-
-
-// M = M .* ( ((WtX*R') + (alpha*I)) ./ max( (WtW*M*R*R') + ( (alpha)*M)+lambda,eps) );      
-
-// nj.divide((nj.dot(aplha, I), max(nj.dot)
-// var M = (nj.dot(WtX, R.T)
