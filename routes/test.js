@@ -41,3 +41,13 @@ router.get("/test1", function(req, res, next) {
 })
 
 //Pruebas
+
+var num = 8
+var matrizA = nj.array([[2, 3],[6,7]])
+var num = [3]
+
+
+console.log('matrizA: ', matrizA)
+console.log('sumatoria: ', matrizA.sum())
+console.log('diagonal: ', matrizA.diag())
+console.log('suma de diagonal: ', matrizA.diag().sum())
