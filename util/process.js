@@ -159,16 +159,12 @@ function tr(A, B) {
 	  		itNum = itNum + 1;
 	end
 */
-function JPP (X, R, k, alpha, lambda, epsilon, maxiter, verbose){
+function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 	var n = X.shape[0] // # filas X
 	var v1 = X.shape[1] // # columnas X
-	//var W = nj.random([n,k]) //Matriz aleatoria de n x k
-	//var H = nj.random([k,v1]) //Matriz aleatoria de k x v1
-	//var M = nj.random([k,k]) //Matriz aleatoria de k x k
-
-	var W = nj.array([[0.1,0.2,0.3], [0.1,0.2,0.3], [0.1,0.2,0.3]])
-	var H = nj.array([[0.01,0.02,0.03], [0.01,0.02,0.03], [0.01,0.02,0.03]])
-	var M = nj.array([[0.001,0.002,0.003], [0.001,0.002,0.003], [0.001,0.002,0.003]])
+	var W = nj.random([n,k]) //Matriz aleatoria de n x k
+	var H = nj.random([k,v1]) //Matriz aleatoria de k x v1
+	var M = nj.random([k,k]) //Matriz aleatoria de k x k
 
 	var I = nj.identity(k) //Matriz identidad k x k
 	var Ilambda = I.multiply(lambda) //Multiplicacion matricial
@@ -182,31 +178,19 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter, verbose){
 	var prevObj = 2*Obj
 	var J
 
-	var W_1
-	var W_2
-	var W_3
-	var W_4
+	var W_1, W_2, W_3, W_4
 
-	var WtW
-	var WtX
+	var WtW, WtX
 
-	var M_1
-	var M_2
-	var M_3
-	var M_4
-	var M_5
+	var M_1, M_2, M_3, M_4, M_5
 
-	var H_1
-	var H_2
+	var H_1, H_2
 
 	var delta
 
 	var ObjHistory = []
 
 	while ((Math.abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)) {
-		//console.log("abs", Math.abs(prevObj-Obj))
-		//console.log("diferencia", prevObj-Obj)
-
 		J = nj.dot(M, R) // Multiplicacion matricial
 
 		//W =  W .* ( M_1  ./ max(W*(M_2),eps) ); % eps = 2^(-52)
@@ -232,42 +216,19 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter, verbose){
 		H_2 = maxMatlab(H_1, eps)
 		H = H.multiply( WtX.divide(H_2) ) //H .* (WtX./max(H_1,eps));
 
-		//console.log("\nH", H)
-
 		prevObj = Obj
 		Obj = ComputeLoss(X,W,H,M,R,lambda,alpha, trXX, I)
-		//console.log("Obj", Obj)
 		delta = Math.abs(prevObj-Obj) //delta = abs(prevObj-Obj);
-		ObjHistory.push(Obj) //ObjHistory(itNum) = Obj;
-
-		//console.log("W", W)
-		//console.log("M", M)
-		//console.log("H", H)
-		//console.log("Obj", Obj)
-
-
-		/*
-		if verbose,
-            fprintf('It: %d \t Obj: %f \t Delta: %f  \n', itNum, Obj, delta); 
-     	end
-		*/
-		if (verbose) {
-			console.log("It: " + itNum)
-			console.log("Obj: " + Obj)
-			console.log("Delta: " + delta)
-		}
-
-
+		//ObjHistory.push(Obj) //ObjHistory(itNum) = Obj;
 
 		itNum++
-		//console.log("itnum", itNum)
 	}
 
 	return {
-		W: W.tolist(),
-		H: H.tolist(),
-		M: M.tolist(),
-		ObjHistory: ObjHistory
+		W: W,
+		H: H,
+		M: M
+		//ObjHistory: ObjHistory
 	}	
 }
 
@@ -295,18 +256,13 @@ function ComputeLoss(X, W, H, M, R, reg_norm, reg_temp, trXX, I){
 	var WtW = nj.dot(W.T, W)
 	var MR = nj.dot(M, R)
 	var WH = nj.dot(W, H)
-	//console.log("\nH", H)
 	var WMR = nj.dot(W, MR)
-
-	//console.log("..............WtW", WtW, "\nMR", MR, "\nWH", WH, "\nWMR", WMR)
 
 	var tr1 = trXX - (2*tr(X, WH)) + (tr(WH, WH))
 	var tr2 = trXX - (2*tr(X,WMR)) + (tr(WMR, WMR))
 	var tr3 = reg_temp * ( tr(M,M) - (2 * M.diag().sum()) + (I.diag().sum()) )
 	var tr4 = reg_norm * (H.sum() + W.sum() + M.sum())
 	var Obj = tr1 + tr2 + tr3 + tr4
-
-	//console.log("TR", tr1, tr2, tr3, tr4)
 
 	return Obj
 }

@@ -59,12 +59,12 @@ function matrizAleatoria(N , M, min, max) {
 	return nj.array(X)
 }
 
-var x = nj.array([[1,2,3], [4,5,6], [7,8,9]])
-//var x = matrizAleatoria(50, 30, 10, 100)
-var r = nj.array([[1,1,1], [2,2,2], [3,3,3]])
-//var r = matrizAleatoria(60, 30, 10, 100)
-//var k = 60
-var k = 3
+//var x = nj.array([[1,2,3], [4,5,6], [7,8,9]])
+var x = matrizAleatoria(50, 30, 10, 100)
+//var r = nj.array([[1,1,1], [2,2,2], [3,3,3]])
+var r = matrizAleatoria(60, 30, 10, 100)
+var k = 60
+//var k = 3
 var alpha = 10000000
 var lambda = 0.05
 var epsilon = 0.01
@@ -83,7 +83,7 @@ console.log("verbose", verbose)
 */
 console.time("tiempo")
 
-console.log("EL JPP es: ", JPP(x, r, k, alpha, lambda, epsilon, maxiter, verbose))
+console.log("EL JPP es: ", JPP(x, r, k, alpha, lambda, epsilon, maxiter))
 
 console.timeEnd("tiempo")
 
