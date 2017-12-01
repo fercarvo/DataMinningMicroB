@@ -1,4 +1,4 @@
-var stopwords = require('../DB/stopwords.json')
+var { stopwords } = require('../DB/stopwords.js')
 var snowball = require('node-snowball')
 var fs = require('fs')
 const { fork } = require('child_process')
@@ -9,6 +9,7 @@ module.exports = {
 	processTweet: processTweet,
 	cleaner: cleaner,
 	storageTweets: storageTweets,
+	dbTweet: dbTweet,
 	stopwords: stopwords,
 	longCompute: longCompute,
 	processPromise: processPromise,
@@ -18,8 +19,8 @@ module.exports = {
 /*
 	Funcion que procesa un tweet y lo devuelve limpio
 */
-function processTweet(tweet, stopwords) {
-	var clean_tweet = cleaner(tweet.text, stopwords)
+function processTweet(tweet) {
+	var clean_tweet = cleaner(tweet.text)
 
 	return {
 		id : tweet.id,
@@ -30,14 +31,22 @@ function processTweet(tweet, stopwords) {
 	}
 }
 
+function dbTweet (dirname, tweet){
+	//var file = fs.openSync(dirname)
+	var tweets = JSON.parse( fs.readFileSync(dirname, 'utf8') )
+	tweets.push(tweet)
+
+	fs.writeFileSync( dirname, JSON.stringify(tweets), "utf8")
+}
+
 
 /*
 	Funcion que recibe un string y devuelve un array de palabras limpias
 */
-function cleaner(string, stopwords) {
+function cleaner(string) {
 
-	if (!string || !stopwords)
-		throw new Error("No existe el string o los stopwords")
+	if (!string)
+		throw new Error("No existe el string")
 
 	string = string.toLowerCase(); //todo a minusculas
 	string = string.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '') //Se elimina URLs
@@ -51,7 +60,7 @@ function cleaner(string, stopwords) {
 		}
 	}
 
-	array = snowball.stemword(array, 'spanish') //Se realiza el stemming
+	//array = snowball.stemword(array, 'spanish') //Se realiza el stemming
 	return array
 }
 
@@ -91,15 +100,18 @@ function storageTweets (path, new_tweets) {
 /*
 	Simulador de procesamiento de CPU
 */
-function longCompute(text) {
-	var sum = 1
-	var cantidad = 100000
-	for (var i = 0; i < cantidad; i++) {
-		sum+=1
-		console.log(sum + text)
-	}
+function longCompute(cantidad=10000, text=" test") {
+	return new Promise(function(resolve, reject){
+		setInterval(function(){
+			var sum = 1
+			for (var i = 0; i < cantidad; i++) {
+				sum+=1
+				console.log(sum + text)
+			}
 
-	return sum
+			resolve(sum)
+		}, 10000)
+	})	
 }
 
 /*
@@ -125,39 +137,11 @@ function processPromise (path, data) {
 */
 function tr(A, B) {
 	var mult = A.multiply(B)
-	//console.log("\nAB", A, B)
 	return mult.sum()
 }
 
 /*
-	n = size(X, 1); %filas X
-	v1 = size(X, 2); %columnas X
-	W  = abs(rand(n, k)); %genera matriz con valores aleatorios de (n filas) x (k columnas, no sabemos el valor de k)
-	H = abs(rand(k, v1)); %genera matriz random de (k filas)x(vi columnas) 
-	M = abs(rand(k,k)); %genera matriz random de (k filas) x (k columas)
-	I =speye(k,k); %Matriz identidad (k filas)x(k columnas)
-	Ilambda = I*lambda; %multiplica la identidad I por lam
-	trXX = tr(X, X); %multiplicacion termino por termino y despues suma filas y despues columnas, queda escalar
-	itNum = 1;
-	Obj = 10000000;
-	prevObj = 2*Obj;
-
-	while((abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)),
-		J= M*R;
-		W =  W .* ( X*(H'+J')  ./ max(W*((J*J')+(H*H')+ lambda),eps) ); % eps = 2^(-52)
-		WtW =W'*W;
-		WtX = W'*X;     
-		M = M .* ( ((WtX*R') + (alpha*I)) ./ max( (WtW*M*R*R') + ( (alpha)*M)+lambda,eps) );      
-		H = H .* (WtX./max(WtW*H+lambda,eps));
-		prevObj = Obj;
-		Obj = computeLoss(X,W,H,M,R,lambda,alpha, trXX, I);
-		delta = abs(prevObj-Obj);
-		ObjHistory(itNum) = Obj;
-		if verbose,
-			fprintf('It: %d \t Obj: %f \t Delta: %f  \n', itNum, Obj, delta); 
-	    end
-	  		itNum = itNum + 1;
-	end
+	Algoritmo JPP
 */
 function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 	var n = X.shape[0] // # filas X
@@ -165,7 +149,6 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 	var W = nj.random([n,k]) //Matriz aleatoria de n x k
 	var H = nj.random([k,v1]) //Matriz aleatoria de k x v1
 	var M = nj.random([k,k]) //Matriz aleatoria de k x k
-
 	var I = nj.identity(k) //Matriz identidad k x k
 	var Ilambda = I.multiply(lambda) //Multiplicacion matricial
 	var trXX = tr(X, X) //..
@@ -174,21 +157,13 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 	var itNum = 1
 	var Obj = 10000000
 	var eps = 2^(-52)
-
 	var prevObj = 2*Obj
 	var J
-
 	var W_1, W_2, W_3, W_4
-
 	var WtW, WtX
-
 	var M_1, M_2, M_3, M_4, M_5
-
 	var H_1, H_2
-
 	var delta
-
-	var ObjHistory = []
 
 	while ((Math.abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)) {
 		J = nj.dot(M, R) // Multiplicacion matricial
@@ -219,18 +194,13 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 		prevObj = Obj
 		Obj = ComputeLoss(X,W,H,M,R,lambda,alpha, trXX, I)
 		delta = Math.abs(prevObj-Obj) //delta = abs(prevObj-Obj);
-		//ObjHistory.push(Obj) //ObjHistory(itNum) = Obj;
 
 		itNum++
 	}
 
-	return {
-		W: W,
-		H: H,
-		M: M
-		//ObjHistory: ObjHistory
-	}	
+	return { W, H, M }	
 }
+
 
 /*
 	function Obj = computeLoss(X,W,H,M,R,reg_norm,reg_temp, trXX, I)
@@ -244,13 +214,6 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 	    tr4 = reg_norm * (sum(sum(H)) + sum(sum(W)) + sum(sum(M)) );
 	    Obj = tr1+ tr2 + tr3+ tr4;    
 	end
-
-	X matriz
-	W matriz
-	H matriz
-	M matriz
-	R matriz
-
 */
 function ComputeLoss(X, W, H, M, R, reg_norm, reg_temp, trXX, I){
 	var WtW = nj.dot(W.T, W)
@@ -267,11 +230,11 @@ function ComputeLoss(X, W, H, M, R, reg_norm, reg_temp, trXX, I){
 	return Obj
 }
 
-function maxMatlab(matriz, escalar) {
-	var temp = matriz.tolist()
+function maxMatlab(matrix, escalar) {
+	var temp = matrix.tolist()
 	for (var i = 0; i < temp.length; i++) {
 		for (var j = 0; j < temp[0].length; j++) {
-			if (escalar >= temp[i][j])
+			if (escalar > temp[i][j])
 				temp[i][j] = escalar
 		}
 	}

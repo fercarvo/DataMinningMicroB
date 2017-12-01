@@ -10,9 +10,9 @@ const {
 	stopwords } = require('../util/process.js')
 
 
-var Twitter = require('twitter');
-var config = require('../config.json')
-var client = new Twitter(config)
+//var Twitter = require('twitter');
+//var config = require('../config.js')
+//var client = new Twitter(config)
 
 router.get("/query/:buscar", function(req, res, next) {
 
