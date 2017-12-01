@@ -18,6 +18,9 @@ var app = require('http').createServer()
 var io = require('socket.io')(app);
 var fs = require('fs');
 
+
+var streamers = []
+
 app.listen(3001)
 
 router.get("/tweets/prueba", function(req, res, next) {
@@ -27,14 +30,22 @@ router.get("/tweets/prueba", function(req, res, next) {
 	return res.json(data)
 })
 
+router.get("/stream/start", function(req, res, next){
+	var st = streamTweets()
+	streamers.push(st)
+	return res.send("stream... start")
+})
 
+router.get("/stream/stop", function(req, res, next)
+{
+	for (st of streamers) {
+		st.destroy()
+	}
 
-streamTweets()
-/*for ( topico of topicos) {
-	streamTweets(topico.nombre, getTrack(topico.data))
-}*/
+	return res.send("stream... stop")
+})
 
-function streamTweets(topico = null, track = null) {
+function streamTweets() {
 
 	var stream_data = {
 		//track: 'terremoto ecuador,temblor ecuador,odebrech ecuador',
@@ -47,7 +58,7 @@ function streamTweets(topico = null, track = null) {
 	stream.on('data', function(tweet) {
 		var pt = processTweet(tweet)
 
-		console.log(`Tweet topico ${topico}`, pt)
+		console.log(`Tweet...`, pt)
 		dbTweet( __dirname + "/../DB/tweets/prueba.json", pt)
 		//socket.emit('tweet', processTweet(tweet, stopwords))
 	})
@@ -55,6 +66,8 @@ function streamTweets(topico = null, track = null) {
 	stream.on('error', function(error) {
 		console.log(`\n\nError... ${error}`)
 	})
+
+	return stream
 }
 
 /*var stream_data = {
