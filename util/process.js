@@ -40,6 +40,7 @@ function dbTweet (dirname, tweet){
 }
 
 
+
 /*
 	Funcion que recibe un string y devuelve un array de palabras limpias
 */
@@ -60,7 +61,7 @@ function cleaner(string) {
 		}
 	}
 
-	//array = snowball.stemword(array, 'spanish') //Se realiza el stemming
+	array = snowball.stemword(array, 'spanish') //Se realiza el stemming
 	return array
 }
 
@@ -147,7 +148,8 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 	var n = X.shape[0] // # filas X
 	var v1 = X.shape[1] // # columnas X
 	var W = nj.random([n,k]) //Matriz aleatoria de n x k
-	var H = nj.random([k,v1]) //Matriz aleatoria de k x v1
+	//var H = nj.random([k,v1]) //Matriz aleatoria de k x v1
+	var H = R
 	var M = nj.random([k,k]) //Matriz aleatoria de k x k
 	var I = nj.identity(k) //Matriz identidad k x k
 	var Ilambda = I.multiply(lambda) //Multiplicacion matricial
