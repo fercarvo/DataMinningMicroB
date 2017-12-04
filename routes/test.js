@@ -4,7 +4,7 @@ var body = require('body-parser')
 
 module.exports = router
 
-const { longCompute, processPromise, JPP } = require('../util/process.js')
+const { longCompute, processPromise, JPP, quitarAcentos } = require('../util/process.js')
 var nj = require('numjs')
 
 //Performance test multi hilo
@@ -290,3 +290,8 @@ data = valores2()
 JPP(data.x, data.r, data.k, data.alpha, data.lambda, data.epsilon, data.maxiter)
 console.log("\nEn serie: 10 procesos" )
 console.timeEnd("performance10")*/
+
+
+var cadena = quitarAcentos("Hola cancióñ, votacíon, LÉnïn Ágora, úbÚntü étimología")
+
+console.log(cadena)
