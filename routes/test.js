@@ -3,7 +3,6 @@ var fs = require('fs')
 var body = require('body-parser')
 
 
-
 const { cleaner, longCompute, processPromise, JPP } = require('../util/process.js')
 var nj = require('numjs')
 
@@ -295,7 +294,6 @@ data = valores2()
 JPP(data.x, data.r, data.k, data.alpha, data.lambda, data.epsilon, data.maxiter)
 console.log("\nEn serie: 10 procesos" )
 console.timeEnd("performance10")*/
-
 
 
 
