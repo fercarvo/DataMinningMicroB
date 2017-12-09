@@ -4,7 +4,21 @@ var logger = require('morgan')
 var cookieParser = require('cookie-parser')
 var bodyParser = require('body-parser')
 
+var mongoose = require('mongoose')
+const { db } = require('./config.js')
+
+mongoose.Promise = global.Promise
+
 var app = express()
+
+mongoose.connect(`mongodb://${db.user}:${db.password}@ds135486.mlab.com:35486/${db.name}`, { useMongoClient: true })
+	.then(function (info) {
+		console.log("Conexion MongoDB mlab exitosa...")
+
+	}).catch(function (error) {
+		console.log("Error MongoDB mlab", error)
+
+	})
 
 // view engine setup
 app.set('views', __dirname + '/views')
@@ -20,6 +34,7 @@ app.use(express.static(__dirname + '/public'))
 app.use('/', require('./routes/index'))
 app.use('/', require('./routes/streaming'))
 app.use('/', require('./routes/test'))
+app.use('/', require('./routes/dbtest'))
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
