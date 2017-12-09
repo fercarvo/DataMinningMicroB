@@ -1,4 +1,4 @@
-module.exports.tokens = [
+var	tokens = [
 	{
 		user: "fercarvo",
 	    consumer_key: "8oAoBsDEXqyPpjIPi2AEHopvI",
@@ -7,3 +7,11 @@ module.exports.tokens = [
 	    access_token_secret: "762tLVnOgAsvscR72yya6rqDlviYsgmxBfMBhxwu9LOHL"
 	}
 ]
+
+var db = {
+	user : "global",
+	password: "global",
+	name : "dataminningmicrob"
+}
+
+module.exports = { tokens, db }

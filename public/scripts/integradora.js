@@ -21,6 +21,7 @@
     }])
     .run(["$state", "$http", "$templateCache", function ($state, $http, $templateCache) {
         $state.go("grafico1")
+        alert("EN angular...")
     }])
     .controller('listener', ["$scope", "$state", function($scope, $state){
         var socket = io('http://localhost:3001')

@@ -296,7 +296,7 @@ console.log("\nEn serie: 10 procesos" )
 console.timeEnd("performance10")*/
 
 
-
+/*
 function concatenar(doc){
 	var words = []
 
@@ -360,8 +360,6 @@ for (palabra in palabras_corpus) {
 	X.push(fila)
 }
 
-//console.log(X.length)
-//console.log(X[0].length)
 
 var matrizX = nj.array(X)
 matrizX = matrizX.T
@@ -380,16 +378,6 @@ var datos = {
 
 var resultado = JPP(datos.x, datos.r, datos.k, datos.alpha, datos.lambda, datos.epsilon, datos.maxiter, datos.verbose)
 var H = resultado.H
-
-console.log(resultado.M.tolist())
-
-
-
-
-
-
-
-
 
 
 
@@ -458,10 +446,12 @@ var datos2 = {
 var resultado2 = JPP(datos.x, datos.r, datos.k, datos.alpha, datos.lambda, datos.epsilon, datos.maxiter, datos.verbose)
 var H2 = resultado2.H.tolist()
 
-console.log(resultado2.M.tolist())
+//console.log(resultado2.M.tolist())
 
 
 var grafico = resultado2.M.tolist()
+
+*/
 
 
 router.get("/bla2", function(req, res, next){
