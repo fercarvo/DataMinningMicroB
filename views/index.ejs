@@ -7,78 +7,136 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Visualización</title>
     
-
-    <%- include styles.ejs %>
     <link rel="stylesheet" type="text/css" href="/styles/vendor/nv.d3.min.css" />
 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!-- Our Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="/styles/styles.css" />
+
+    <!-- Scrollbar Custom CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.css">
+
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 </head>
-<body class="page-dashboard" ng-app="app">
+<body ng-app="app">
 
-    <header>
-        <ul id="slide-out" class="side-nav fixed grey lighten-2">
-            <br>
-            <li ui-sref="grafico2" ui-sref-active="active"><a href="#" class="teal-text">Grafico topico 1 (Merge)</a></li>
-            <li ui-sref="grafico1" ui-sref-active="active"><a href="#" class="teal-text">Grafico</a></li>
-            <li ui-sref="listener" ui-sref-active="active"><a href="#" class="teal-text">Listener</a></li>
-        </ul>
-        <div class="navbar-fixed">
-        <nav>
-            <div class="nav-wrapper teal">
-                <a data-activates="slide-out" class="left button-collapse brand-logo">
-                    <i class="material-icons">menu</i>
-                </a>
-                <h4 class="brand-logo right">Visualizador</h4>                
+    <div class="wrapper">
+            <!-- Sidebar Holder -->
+        <nav id="sidebar">
+            <div id="dismiss">
+                <i class="glyphicon glyphicon-arrow-left"></i>
             </div>
-        </nav>
-        </div>
-    </header>        
 
+            <div class="sidebar-header">
+                <h3>Menú</h3>
+            </div>
 
-    <main>
-        <div class="container grafico">
-            <ui-view></ui-view>
-        </div>
-    </main>
-
-    <footer class="page-footer teal">
-        <div class="container teal">
-            <div id="contenido-footer" class="row">
-                <div class="col l6 s12">
-                <ul>
-                    <li><a class="white-text" href="http://www.espol.edu.ec/" target="_blank">ESPOL</a></li>
-                    <li><a class="white-text" href="https://github.com/fercarvo" target="_blank">Edgar Carvajal</a></li>
-                    <li><a class="white-text" href="https://github.com/wjvelez" target="_blank">Washington Vélez</a></li>
-                </ul> 
-                </div>
-                <div class="col l3 s12 right">
-                    <h6 class="white-text"><b>Documentaci&oacute;n</b></h6>
-                    <ul>
-                    <li><a class="white-text" target="_blank" href="https://github.com/fercarvo/DataMinningMicroB">Repositorio GIT</a></li>
+            <ul class="list-unstyled components">
+                <p>Dataminnign ESPOL</p>
+                <li ui-sref="listener">
+                    <a href="#">Listener</a>
+                </li>
+                <li >
+                    <a href="#graficos" data-toggle="collapse" aria-expanded="false">Gŕaficos</a>
+                    <ul class="collapse list-unstyled" id="graficos">
+                        <li ui-sref="grafico1"><a href="#">Matriz</a></li>
+                        <li ui-sref="grafico2"><a href="#">Evolución</a></li>
                     </ul>
+                </li>
+                
+                <li>
+                    <a href="#autores" data-toggle="collapse" aria-expanded="false">Contactos</a>
+                    <ul class="collapse list-unstyled" id="autores">
+                        <li><a href="https://github.com/fercarvo" target="_blank">Edgar Fernando Carvajal</a></li>
+                        <li><a href="https://github.com/wjvelez" target="_blank">Washignton Vélez</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <ul class="list-unstyled CTAs">
+                <li><a href="https://github.com/fercarvo/DataMinningMicroB" target="_blank" class="text-center repo">Repositorio <i class="fa fa-github" style="font-size:20px"></i></a></li>
+            </ul>
+        </nav>
+
+        <!-- Page Content Holder -->
+        <div id="content">
+
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+
+                    <div class="navbar-header">
+                        <button type="button" id="sidebarCollapse" class="btn btn-info navbar-btn">
+                            <i class="glyphicon glyphicon-align-left"></i>
+                            <span>Menú</span>
+                        </button>
+                    </div>
+
+                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                        <ul class="nav navbar-nav navbar-right">
+                            <li ui-sref="home"><a href="#">Principal</a></li>
+                            <li ui-sref="listener"><a href="#">Listener</a></li>
+                            <li ui-sref="grafico1"><a href="#">Gráfico 1</a></li>
+                            <li ui-sref="grafico2"><a href="#">Gráfico 2</a></li>
+                        </ul>
+                    </div>
                 </div>
+            </nav>
+
+            <div class="container">
+                <ui-view></ui-view>
             </div>
+           
         </div>
-        <div class="footer-copyright teal">
-            <div class="container center">
-                © 2017 Copyright
-            </div>
-        </div>
-    </footer>
+        
+        <div class="overlay"></div>
 
 
 
 <%- include scripts.ejs %>
+       
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+
 <script src="/scripts/vendor/d3.min.js" charset="utf-8"></script>
 <script src="/scripts/vendor/nv.d3.min.js"></script>
 <script src="/scripts/vendor/angular-ndv3.min.js"></script>
+
 <!-- highcharts | heatmap -->
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/heatmap.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
+
 <!-- highcharts | heatmap -->
 <script src="/scripts/integradora.js"></script>
+
+<!-- Bootstrap Js CDN -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<!-- jQuery Custom Scroller CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.concat.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#sidebar").mCustomScrollbar({
+            theme: "minimal"
+        });
+
+        $('#dismiss, .overlay').on('click', function () {
+            $('#sidebar').removeClass('active');
+            $('.overlay').fadeOut();
+        });
+
+        $('#sidebarCollapse').on('click', function () {
+            $('#sidebar').addClass('active');
+            $('.overlay').fadeIn();
+            $('.collapse.in').toggleClass('in');
+            $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+        });
+    });
+</script>
+
 
 </body>
 </html>

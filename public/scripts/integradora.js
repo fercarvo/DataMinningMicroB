@@ -1,6 +1,10 @@
 ﻿angular.module('app', ['ui.router', 'nvd3'])
     .config(["$stateProvider", "$compileProvider", function ($stateProvider, $compileProvider) {
         $stateProvider
+            .state('home', {
+                templateUrl: 'views/home.html',
+                controller: 'home'
+            })
             .state('grafico1', {
                 templateUrl: 'views/grafico.html',
                 controller: 'grafico1'
@@ -20,7 +24,7 @@
         
     }])
     .run(["$state", "$http", "$templateCache", function ($state, $http, $templateCache) {
-        $state.go("grafico1")
+        $state.go("home")
     }])
     .controller('listener', ["$scope", "$state", function($scope, $state){
         var socket = io('http://localhost:3001')
