@@ -172,3 +172,22 @@ a.repo {
     top: 0;
     right: 0;
 }
+
+.diagrama{
+    margin: 0 auto;
+    width: 80%;
+    margin-bottom: 3%;
+}
+
+#contenido{
+    padding-bottom: 60px;
+}
+
+
+
+/* Streaming */
+.tweet-user{
+    width: 30%;
+}
+
+
