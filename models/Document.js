@@ -6,11 +6,7 @@ var Document = new Schema({
         type: Schema.ObjectId, 
         ref: 'Corpus'         
     },
-    identificador: Number,
-    tweets: [{ 
-        type: Schema.ObjectId, 
-        ref: 'Tweet'         
-    }]
+    identificador: Number
 })
 
 module.exports = mongoose.model('Document', Document);

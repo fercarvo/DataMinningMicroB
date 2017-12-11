@@ -6,7 +6,8 @@ var Tweet = new Schema({
         type: Schema.ObjectId, 
         ref: 'Document'         
     },
-    id: String,
+    tweet: String,
+    id: Number,
     clean_data: [String],
     usuario: String
 })

@@ -8,10 +8,7 @@ var nj = require('numjs')
 module.exports = {
 	processTweet: processTweet,
 	cleaner: cleaner,
-	storageTweets: storageTweets,
-	dbTweet: dbTweet,
 	stopwords: stopwords,
-	longCompute: longCompute,
 	processPromise: processPromise,
 	JPP: JPP,
 	quitarAcentos: quitarAcentos
@@ -21,25 +18,25 @@ module.exports = {
 	Funcion que procesa un tweet y lo devuelve limpio
 */
 function processTweet(tweet) {
-	var clean_tweet = cleaner(tweet.text)
+	//var clean_tweet = cleaner(tweet.text)
 
 	return {
 		id : tweet.id,
 		tweet : tweet.text,
-		clean_data : clean_tweet,
+		clean_data : null,
 		usuario : "@" + tweet.user.screen_name,
-		nombre : tweet.user.name 
 	}
 }
 
+//Sin uso
+/*
 function dbTweet (dirname, tweet){
-	//var file = fs.openSync(dirname)
 	var tweets = JSON.parse( fs.readFileSync(dirname, 'utf8') )
 	tweets.push(tweet)
 
 	fs.writeFileSync( dirname, JSON.stringify(tweets), "utf8")
 }
-
+*/
 
 
 /*
@@ -67,9 +64,8 @@ function cleaner(string) {
 	return array
 }
 
+//Sin uso
 /*
-	Funcion que recibe nuevos tweets y los almacena en un archivo con los demas
-*/
 function storageTweets (path, new_tweets) {
 	var DB_tweets
 
@@ -98,24 +94,7 @@ function storageTweets (path, new_tweets) {
 
 		}
 	})
-}
-
-/*
-	Simulador de procesamiento de CPU
-*/
-function longCompute(cantidad=10000, text=" test") {
-	return new Promise(function(resolve, reject){
-		setInterval(function(){
-			var sum = 1
-			for (var i = 0; i < cantidad; i++) {
-				sum+=1
-				console.log(sum + text)
-			}
-
-			resolve(sum)
-		}, 10000)
-	})	
-}
+}*/
 
 /*
 	Función que ejecuta un proceso con la sintaxis de promises
@@ -133,15 +112,6 @@ function processPromise (path, data) {
 	})
 }
 
-
-/*
-	Funcion tr, recibe 2 matrices de la misma longitud y devuelve la otra con la multiplicacion
-	de sus terminos
-*/
-function tr(A, B) {
-	var mult = A.multiply(B)
-	return mult.sum()
-}
 
 /*
 	Algoritmo JPP
@@ -246,6 +216,15 @@ function maxMatlab(matrix, escalar) {
 	return nj.array(temp)
 }
 
+/*
+	Funcion tr, recibe 2 matrices de la misma longitud y devuelve la otra con la multiplicacion
+	de sus terminos
+*/
+function tr(A, B) {
+	var mult = A.multiply(B)
+	return mult.sum()
+}
+
 
 
 // quitar acentos
@@ -295,11 +274,9 @@ function quitarAcentos(cadena){
     // "what?" version ... http://jsperf.com/diacritics/12
     function removeDiacritics (str) {
         return str.replace(/[^\u0000-\u007E]/g, function(a){ 
-           return diacriticsMap[a] || a; 
-        });
+			return diacriticsMap[a] || a; 
+        })
     }    
-    //var paragraph = "L'avantage d'utiliser le lorem ipsum est bien     évidemment de pouvoir créer des maquettes ou de remplir un site internet de contenus qui présentent un rendu s'approchant un maximum du rendu final. \n Par défaut lorem ipsum ne contient pas d'accent ni de caractères spéciaux contrairement à la langue française qui en contient beaucoup. C'est sur ce critère que nous proposons une solution avec cet outil qui générant du faux-texte lorem ipsum mais avec en plus, des caractères spéciaux tel que les accents ou certains symboles utiles pour la langue française. \n L'utilisation du lorem standard est facile d’utilisation mais lorsque le futur client utilisera votre logiciel il se peut que certains caractères spéciaux ou qu'un accent ne soient pas codés correctement. \n Cette page a pour but donc de pouvoir perdre le moins de temps possible et donc de tester directement si tous les encodages de base de donnée ou des sites sont les bons de plus il permet de récuperer un code css avec le texte formaté !";
-    //alert(removeDiacritics(paragraph));
-    return removeDiacritics(cadena)
- };
-
+	
+	return removeDiacritics(cadena)
+ }

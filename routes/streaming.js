@@ -1,9 +1,15 @@
 var router = require('express').Router()
 var Twitter = require('twitter');
 var { tokens } = require('../config.js')
-var { dbTweet } = require("../util/process.js")
 var { topicos, users } = require('../DB/topicos.js')
-//var stopwords = require('../DB/stopwords.json')
+var moment = require('moment');
+
+var mongoose = require('mongoose')
+
+var Tweet = require('../models/Tweet.js')
+var Corpus = require('../models/Corpus.js')
+var Document = require('../models/Document.js')
+
 var client = new Twitter({
 	    consumer_key: tokens[0].consumer_key,
 	    consumer_secret: tokens[0].consumer_secret,
@@ -19,31 +25,54 @@ var io = require('socket.io')(app);
 var fs = require('fs');
 
 
-var streamers = []
+var stream = null
 
 app.listen(3001)
 
-router.get("/tweets/prueba", function(req, res, next) {
+/*router.get("/tweets/prueba", function(req, res, next) {
 
 	var data = JSON.parse( fs.readFileSync(`${__dirname}/../DB/tweets/prueba.json`, 'utf8') )
 
 	return res.json(data)
-})
+})*/
+
+var corpus = null
+var documento = null
+
+console.log("UTC time", new Date())
+
+getCorpus().then(function (corpus_actual){
+	getDocument(corpus_actual).then(function(doc_actual) {
+
+		corpus = corpus_actual
+		documento = doc_actual
+
+		//console.log("corpus", corpus)
+		//console.log("Documento", documento)
+
+	}).catch(printError)
+}).catch(printError)
+
+
 
 router.get("/stream/start", function(req, res, next){
-	var st = streamTweets()
-	streamers.push(st)
+
+	if (stream) 
+		stream.destroy()
+
+	stream = streamTweets()
 	return res.send("stream... start")
 })
 
-router.get("/stream/stop", function(req, res, next)
-{
-	for (st of streamers) {
-		st.destroy()
-	}
+router.get("/stream/stop", function(req, res, next) {
 
+	if (stream) 
+		stream.destroy()
+
+	stream = null
 	return res.send("stream... stop")
 })
+
 
 function streamTweets() {
 
@@ -56,15 +85,36 @@ function streamTweets() {
 	var stream = client.stream('statuses/filter', stream_data)
 
 	stream.on('data', function(tweet) {
+
 		var pt = processTweet(tweet)
 
-		console.log(`Tweet...`, pt)
-		dbTweet( __dirname + "/../DB/tweets/prueba.json", pt)
-		//socket.emit('tweet', processTweet(tweet, stopwords))
+		if (docID() === documento.identificador && isToday(corpus.fecha)) {
+
+			saveTweet(pt, documento).then(function (tweet) {
+				console.log(tweet)
+
+			}).catch(printError)
+
+		} else {
+
+			getCorpus().then(function (corpus_actual){
+				getDocument(corpus_actual).then(function(doc_actual) {
+
+					corpus = corpus_actual
+					documento = doc_actual
+
+					saveTweet(pt, documento).then(function (tweet) {
+						console.log(tweet)
+
+					}).catch(printError)
+
+				}).catch(printError)
+			}).catch(printError)
+		}
 	})
 
-	stream.on('error', function(error) {
-		console.log(`\n\nError... ${error}`)
+	stream.on('error', function (error) {
+		console.log("\n\nError streamming tweet\n\n")
 	})
 
 	return stream
@@ -108,7 +158,108 @@ function getTrack(array){
 	return string
 }
 
+function docID () {
+	var date_id = new Date()
+	var secs = date_id.getUTCSeconds() + (60 * date_id.getUTCMinutes()) + (60 * 60 * date_id.getUTCHours());
+	return Math.floor(secs/1800)
+}
 
+function saveTweet(obj, documento) {
+	return new Promise(function (resolve, reject){
+
+		new Tweet({
+			_document: documento._id,
+			tweet: obj.tweet,
+			id: obj.id,
+			clean_data: obj.clean_data,
+			usuario: obj.usuario
+		})
+		.save()
+		.then(function (tweet){
+			return resolve(tweet)
+
+		})
+		.catch(function (error) {
+			return reject(error)
+		})
+	})
+}
+
+function getCorpus() {
+	return new Promise(function (resolve, reject) {
+		var start = moment.utc().startOf('day').toDate()
+		var end = moment.utc().endOf('day').toDate()
+
+		Corpus.findOne({fecha: {$gte: start, $lt: end}})
+			.exec()
+			.then(function (doc) {
+
+				if (doc) 
+					return resolve(doc) //Si existe el corpus, lo devuelvo
+
+				
+				new Corpus({
+					fecha: new Date()
+				}).save()
+				.then(function (doc) { //SI no, creo uno y lo devuelvo
+					return resolve(doc)
+
+				})
+				.catch(function (error){
+					return reject(error)
+				})
+				
+
+			}).catch(function(error) {
+				return reject(error)
+			})
+	})
+}
+
+function getDocument(corpus) {
+	return new Promise(function (resolve, reject){
+
+		if (!corpus)
+			return reject("Error, no existe corpus para generar documento")
+
+		var id = docID()
+
+		Document.findOne({identificador: id, _corpus: corpus.id}).exec()
+			.then(function (doc){
+				if (doc)
+					return resolve(doc)
+
+
+				new Document({
+					_corpus: corpus._id,
+					identificador: id
+				}).save()
+				.then(function (documento) {
+					return resolve(documento)
+
+				}).catch(function (error) {
+					return reject(error)
+				})
+				
+			})
+	})
+}
+
+//Recibe una fecha y hora, devuelve true si es de hoy, false caso contrario
+function isToday (date) {
+	var today = new Date()
+	var start = today.setHours(0,0,0,0)
+	var end = today.setHours(23,59,59,999)
+
+	if (date >= start && date <= end) 
+		return true
+	
+	return false
+}
+
+function printError(error) {
+	console.log("Error", error)
+}
 
 
 module.exports = router;

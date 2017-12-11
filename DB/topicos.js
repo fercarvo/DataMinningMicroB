@@ -1,8 +1,3 @@
-module.exports = {
-	topicos: topicos,
-	users: getUsers
-}
-
 var topicos = [
 	/*{
 		nombre: "temblores",
@@ -61,3 +56,7 @@ function getUsers(){
 	return string
 }
 
+module.exports = {
+	topicos: topicos,
+	users: getUsers
+}

@@ -295,7 +295,7 @@ JPP(data.x, data.r, data.k, data.alpha, data.lambda, data.epsilon, data.maxiter)
 console.log("\nEn serie: 10 procesos" )
 console.timeEnd("performance10")*/
 
-
+/*
 function concatenar(doc){
 	var words = []
 
@@ -462,6 +462,8 @@ function cadena(array){
 
 	return cadena
 }
+
+*/
 
 //console.log(corpus)
 
