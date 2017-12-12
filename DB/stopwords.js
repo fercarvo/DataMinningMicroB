@@ -1,4 +1,5 @@
 module.exports.stopwords = [
+	"ecuador",
 	"1",
 	"2",
 	"3",

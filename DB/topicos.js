@@ -27,11 +27,11 @@ var topicos = [
 	},{
 		nombre: "LeninMoreno",
 		data: [
-			"Lenin moreno", 
+			//"Lenin moreno", 
 			"Correa", 
 			"rafael correa", 
 			"alianza pais", 
-			"patiño",
+			//"patiño",
 		]
 	}
 ]
@@ -56,7 +56,19 @@ function getUsers(){
 	return string
 }
 
+function getTopicos(){
+	var string = "ecuador"
+
+	for (topico of topicos) {
+		for (palabra of topico.data) {
+			string += `, ${palabra}`
+		}
+	}
+
+	return string
+}
+
 module.exports = {
-	topicos: topicos,
+	topicos: getTopicos,
 	users: getUsers
 }
