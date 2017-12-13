@@ -31,11 +31,14 @@
         $scope.tweets = []
 
         socket.on('tweet', function (tweet) {
-            //console.log($scope.tweets)
-            $scope.tweets.push(tweet)
-            $scope.$apply();
-            //socket.emit('my other event', { my: 'data' });
+
+            if ($scope.tweets.length >= 25)
+                $scope.tweets.pop()
+
+            $scope.tweets.unshift(tweet)
+            $scope.$apply()
         })
+
         $scope.$on('$destroy', function(){
             socket.close()
         })
