@@ -31,20 +31,6 @@ router.get("/resultado", function(req, res, next) {
 })
 
 
-//Performance test 1 hilo
-router.get("/test1", function(req, res, next) {
-
-	var begin = Date.now()
-
-	longCompute(" 1")
-	longCompute(" 2")
-	longCompute(" 3")
-	longCompute(" 4")
-
-	return res.send("Performance time: " + (Date.now() - begin)/1000 + "s")
-
-})
-
 //Pruebas
 /*var num = 8
 var matrizA = nj.array([[2, 3],[6,7]])
@@ -463,10 +449,11 @@ function cadena(array){
 	return cadena
 }
 
-*/
+
 
 //console.log(corpus)
 
 //console.log(tweets)
+*/
 
 module.exports = router

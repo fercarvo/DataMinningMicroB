@@ -2,41 +2,15 @@ var router = require('express').Router()
 var mongoose = require('mongoose')
 var moment = require('moment');
 var async = require('async')
+const { cleaner } = require('../util/process.js')
+var nj = require('numjs')
+var natural = require('natural')
+var TfIdf = natural.TfIdf 
 
 
 var Tweet = require('../models/Tweet.js')
 var Corpus = require('../models/Corpus.js')
 var Document = require('../models/Document.js')
-
-
-/*
-function docID () {
-	var targetTime = new Date()
-	var tzDifference = 5 * 60 + targetTime.getTimezoneOffset()
-	var offsetTime = new Date(targetTime.getTime() - (tzDifference/2) * 60 * 1000)
-	var secs = offsetTime.getUTCSeconds() + (60 * offsetTime.getUTCMinutes()) + (60 * 60 * offsetTime.getUTCHours());
-	return Math.floor(secs/1800)
-}
-
-
-function getTimeEC() {
-	var targetTime = new Date()
-	var tzDifference = 5 * 60 + targetTime.getTimezoneOffset()
-	var offsetTime = new Date(targetTime.getTime() - (tzDifference/2) * 60 * 1000)
-	return offsetTime
-}
-
-function getStart(time) {
-	var date = time
-	date.setHours(-5,0,0,0)
-	return date
-}
-
-function getEnd(time) {
-	var date = time
-	date.setHours(18,59,59,999)
-	return date
-}*/
 
 
 router.get("/corpus/today", function (req, res, next){
@@ -50,7 +24,6 @@ router.get("/corpus/today", function (req, res, next){
 		getDocuments(corpus).then(function (docs) {
 			corpus = corpus.toObject()
 			delete corpus.__v
-			delete corpus._id
 			corpus.documents = docs
 
 			return res.json(corpus)
@@ -65,20 +38,6 @@ router.get("/corpus/today", function (req, res, next){
 	})
 })
 
-
-router.get("/document", function (req, res, next) {
-	Document.find({}).exec()
-	.then(function (docs) {
-		return res.json(docs)
-	})
-	.catch(function (error) {
-		return next(error)
-	})
-
-})
-
-
-
 router.get("/corpus", function (req, res, next){
 	Corpus.find({}).exec().then(function (docs){
 		return res.json(docs)
@@ -88,7 +47,22 @@ router.get("/corpus", function (req, res, next){
 	})
 })
 
+router.get("/corpus/:id/matrix", function (req, res, next) {
 
+	var c_data = {
+		_id: req.params.id
+	}
+
+	getX(c_data).then((x_matrix) => {		
+		return res.json(x_matrix)
+
+	}).catch((error) => {
+		return next(error)
+	})
+})
+
+
+//FUncion que recibe un docpus y devuelve todos sus documentos con sus respectivos tweets
 function getDocuments(corpus) {
 
 	var data = []
@@ -104,22 +78,24 @@ function getDocuments(corpus) {
 				data.push(obj)
 			}
 
-			async.each(data, function(documento, callback) {
+			eachParallel(data, function (documento, res, rej) {
 
 				getTweets(documento).then(function (tweets) {
 					documento.tweets = tweets
-					callback()
+					res()
 
 				}).catch(function (error) {
-					callback(error)
+					rej(error)
 
 				})
 
-			}, function(err){
-				if (err)
-					return reject(err)
 
-				return resolve(data)				
+			}).then(function () {
+				return resolve(data)
+
+			}).catch(function (error){
+				return reject(error)
+
 			})
 
 		}).catch(function (error){
@@ -130,6 +106,7 @@ function getDocuments(corpus) {
 }
 
 
+//Funcion que recibe un documento y devuelve todos sus tweets
 function getTweets(doc) {
 	var data = []
 
@@ -153,6 +130,140 @@ function getTweets(doc) {
 
 		})
 	})
+}
+
+
+//Ejecuta en serie todas las operaciones
+function eachSeries(array, fn) {
+	return new Promise(function (resolveGlobal, rejectGlobal) {
+
+		var promises = []
+		var next = 0
+
+		fn(array[next], resolveObj, rejectObj)
+
+		function resolveObj(data) {
+
+			promises.push( Promise.resolve(data) )
+
+			next++
+
+			if (next >= array.length) {
+				Promise.all(promises).then(function (data) {
+					resolveGlobal(data)
+				}).catch(function (error) {
+					rejectGlobal(error)
+				})
+			} else {
+				fn(array[next], resolveObj, rejectObj)
+			}
+
+		}
+
+		function rejectObj(error) {
+			return rejectGlobal(error)
+		}
+
+	})
+}
+
+//Ejecuta en paralelo todas las operaciones
+function eachParallel(array, fn) {
+	return new Promise(function (resolveGlobal, rejectGlobal) {
+
+		var promises = []
+
+		for (obj of array ) {
+			fn(obj, resolveObj, rejectObj)
+		}
+
+		function resolveObj(data) {
+			promises.push( Promise.resolve(data) )
+
+			if (promises.length == array.length) {
+				Promise.all(promises).then(function (data) {
+					resolveGlobal(data)
+				}).catch(function (error) {
+					rejectGlobal(error)
+				})
+			}
+
+		}
+
+		function rejectObj(error) {
+			rejectGlobal(error)
+		}	
+
+	})
+}
+
+//Funcion que recibe un crpus y retorna una promise con su matrix X procesada
+function getX(corpus_data) {
+	return new Promise ((resolve, reject) => {
+
+		var corpus = new TfIdf()
+		console.log("Procesando corpus...")
+
+		getDocuments(corpus_data).then((documentos) => {
+
+			var palabras_corpus = [] //Todas las palabras del corpus concatenadas doc_1.concat(doc_2)
+			var matrix_X = []
+
+			//Se procesa cada tweet, steaming, etc..
+			for (doc of documentos) {
+
+				doc.words = [] //Todas las palabras de un documento
+				doc.cadena = "" //Todas las palabras del doc separadas por un espacio
+
+				for (tweet of doc.tweets) {
+					//console.log("asdasda", tweet.tweet)
+					tweet.clean_data = cleaner(tweet.tweet)
+					doc.words = doc.words.concat(tweet.clean_data) //Se concatenan todos los clean data en doc.words
+					doc.cadena += doc.words.join(' ') //Se unen todas las palabras en un solo string 
+				}
+
+				corpus.addDocument(doc.cadena)
+
+				palabras_corpus = palabras_corpus.concat(doc.words) //Se concatenan todas las palabras de todos los docs				
+			}
+
+			palabras_corpus = contador(palabras_corpus)
+
+			for (palabra in palabras_corpus) {
+				var fila = []
+
+				corpus.tfidfs(palabra, (i, resultado) => {
+					fila.push(resultado)
+				})
+
+				matrix_X.push(fila)
+			}
+
+			matrix_X = nj.array(matrix_X)
+			matrix_X = matrix_X.T
+			matrix_X = matrix_X.tolist()
+
+			return resolve(matrix_X)
+
+		}).catch((error) => {
+			reject(error)
+		})
+	})
+
+	//Recibe array de string, devuelve dicccionario de cada palabra con su contador
+	function contador (words){
+		var counter = {}
+
+		for (word of words) { //Cuento las veces que se repite cada palabra en el documento
+			if (counter[word]){
+				counter[word]++
+			} else {
+				counter[word] = 1
+			}
+		}
+
+		return counter
+	}
 }
 
 

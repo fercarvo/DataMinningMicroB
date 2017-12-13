@@ -47,21 +47,27 @@ function cleaner(string) {
 	if (!string)
 		throw new Error("No existe el string")
 
-	string = string.toLowerCase(); //todo a minusculas
-	string = string.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '') //Se elimina URLs
-	string = quitarAcentos(string)
-	array = string.match(/\b(\w+)\b/g) //Se convierte string a array de palabras
+	try {
 
-	for (word of stopwords) { //Se elimina stopwords
-		var i = array.length
-		while (i--) {
-		    if (array[i] == word)
-		    	array.splice(i, 1)
+		string = string.toLowerCase(); //todo a minusculas
+		string = string.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '') //Se elimina URLs
+		string = quitarAcentos(string)
+		array = string.match(/\b(\w+)\b/g) //Se convierte string a array de palabras
+
+		for (word of stopwords) { //Se elimina stopwords
+			var i = array.length
+			while (i--) {
+			    if (array[i] == word)
+			    	array.splice(i, 1)
+			}
 		}
-	}
 
-	array = snowball.stemword(array, 'spanish') //Se realiza el stemming
-	return array
+		array = snowball.stemword(array, 'spanish') //Se realiza el stemming
+		return array
+
+	} catch (error) {
+		return []
+	}	
 }
 
 //Sin uso

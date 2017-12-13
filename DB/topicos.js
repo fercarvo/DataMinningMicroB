@@ -27,8 +27,8 @@ var topicos = [
 	},{
 		nombre: "LeninMoreno",
 		data: [
-			//"Lenin moreno", 
-			"Correa", 
+			"Lenin moreno", 
+			//"Correa", 
 			"rafael correa", 
 			"alianza pais", 
 			//"patiño",
