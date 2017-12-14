@@ -11,7 +11,10 @@ module.exports = {
 	stopwords: stopwords,
 	processPromise: processPromise,
 	JPP: JPP,
-	quitarAcentos: quitarAcentos
+	quitarAcentos: quitarAcentos,
+	eachParallel, 
+	eachSeries,
+	cleanM
 }
 
 /*
@@ -26,6 +29,70 @@ function processTweet(tweet) {
 		clean_data : null,
 		usuario : "@" + tweet.user.screen_name,
 	}
+}
+
+//Ejecuta en serie todas las operaciones
+function eachSeries(array, fn) {
+	return new Promise(function (resolveGlobal, rejectGlobal) {
+
+		var promises = []
+		var next = 0
+
+		fn(array[next], resolveObj, rejectObj)
+
+		function resolveObj(data) {
+
+			promises.push( Promise.resolve(data) )
+
+			next++
+
+			if (next >= array.length) {
+				Promise.all(promises).then(function (data) {
+					resolveGlobal(data)
+				}).catch(function (error) {
+					rejectGlobal(error)
+				})
+			} else {
+				fn(array[next], resolveObj, rejectObj)
+			}
+
+		}
+
+		function rejectObj(error) {
+			return rejectGlobal(error)
+		}
+
+	})
+}
+
+//Ejecuta en paralelo todas las operaciones
+function eachParallel(array, fn) {
+	return new Promise(function (resolveGlobal, rejectGlobal) {
+
+		var promises = []
+
+		for (obj of array ) {
+			fn(obj, resolveObj, rejectObj)
+		}
+
+		function resolveObj(data) {
+			promises.push( Promise.resolve(data) )
+
+			if (promises.length == array.length) {
+				Promise.all(promises).then(function (data) {
+					resolveGlobal(data)
+				}).catch(function (error) {
+					rejectGlobal(error)
+				})
+			}
+
+		}
+
+		function rejectObj(error) {
+			rejectGlobal(error)
+		}	
+
+	})
 }
 
 //Sin uso
@@ -119,7 +186,7 @@ function processPromise (path, data) {
 			}
 
 			resolve(result)
-			child.kill()
+			return child.kill()
 		})
 	})
 }
@@ -129,6 +196,10 @@ function processPromise (path, data) {
 	Algoritmo JPP
 */
 function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
+
+	X = nj.array( cleanM(X) )
+	R = nj.array( cleanM(R) )
+
 	var n = X.shape[0] // # filas X
 	var v1 = X.shape[1] // # columnas X
 	var W = nj.random([n,k]) //Matriz aleatoria de n x k
@@ -184,7 +255,11 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 		itNum++
 	}
 
-	return { W, H, M }	
+	return { 
+		W: W.tolist(),
+		H: H.tolist(),
+		M: M.tolist() 
+	}	
 }
 
 
@@ -291,3 +366,15 @@ function quitarAcentos(cadena){
 	
 	return removeDiacritics(cadena)
  }
+
+//Verifica que una matriz no tenga valores diferentes de numeros
+function cleanM(matrix) {
+	for (var i = 0; i < matrix.length; i++) {
+		for (var j = 0; j < matrix[i].length; j++) {
+			if (typeof matrix[i][j] !== "number")
+				matrix[i][j] = 0.000000001
+		}
+	}
+
+	return matrix
+}

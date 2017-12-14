@@ -1,3 +1,10 @@
+/*
+	Esta sección se encarga de encender o apagar la recolección de tweets
+	localhost:3000/stream/on
+	localhost:3000/stream/off
+*/
+
+
 var router = require('express').Router()
 var Twitter = require('twitter');
 var { tokens } = require('../config.js')
@@ -8,6 +15,7 @@ const { processTweet } = require('../util/process.js')
 
 var app = require('http').createServer()
 var io = require('socket.io')(app)
+
 app.listen(3001)
 
 var Tweet = require('../models/Tweet.js')
@@ -42,22 +50,24 @@ io.on('connection', function (socket) {
 })
 
 
-router.get("/stream/start", function(req, res, next){
+router.get("/stream/on", function(req, res, next){
 
 	if (stream) 
 		stream.destroy()
 
 	stream = streamTweets()
-	return res.send("stream... start")
+	console.log("streamming on")
+	return res.send("streamming on")
 })
 
-router.get("/stream/stop", function(req, res, next) {
+router.get("/stream/off", function(req, res, next) {
 
 	if (stream) 
 		stream.destroy()
 
 	stream = null
-	return res.send("stream... stop")
+	console.log("streamming off")	
+	return res.send("streamming off")
 })
 
 
@@ -77,7 +87,7 @@ function streamTweets() {
 			return
 
 		var pt = processTweet(tweet)
-		console.log(pt)
+		//console.log(pt)
 		
 		if (docID() === documento.identificador && isToday(corpus.fecha)) { //Si el corpus es de hoy y el doc es correcto
 
