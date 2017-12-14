@@ -55,11 +55,14 @@ function contador (words){
 	var palabras = []
 
 	for (word of words) { //Cuento las veces que se repite cada palabra en el documento
-		if (counter[word]){
-			counter[word]++
-		} else {
-			counter[word] = 1
+		if (isNaN(word)) { //No cuenta los numeros
+			
+			if (counter[word])
+				counter[word]++
+			else
+				counter[word] = 1			
 		}
+
 	}
 
 	for (palabra in counter)

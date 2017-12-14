@@ -27,7 +27,10 @@
         $state.go("listener")
     }])
     .controller('listener', ["$scope", "$state", function($scope, $state){
-        var socket = io('http://localhost:3001')
+
+        var socket = io.connect('http://localhost:3001', {'forceNew':true })
+
+        //var socket = io('http://localhost:3001')
         $scope.tweets = []
 
         socket.on('tweet', function (tweet) {
