@@ -24,7 +24,7 @@
         
     }])
     .run(["$state", "$http", "$templateCache", function ($state, $http, $templateCache) {
-        $state.go("home")
+        $state.go("listener")
     }])
     .controller('listener', ["$scope", "$state", function($scope, $state){
         var socket = io('http://localhost:3001')
@@ -42,61 +42,113 @@
         $scope.$on('$destroy', function(){
             socket.close()
         })
+
+        /*var not_blocking = genericWorker(window, ["blockCpu", "blockCpu", function (block){
+            console.log("Starting blokcing...")
+            block(7000)
+            return "this return will be catched by the promise resolve"
+        }])
+
+        not_blocking
+            .then(function (result){
+                console.log("result", result)
+            })
+            .catch(function(error) { 
+                console.log(error) 
+            })*/
+
+
     }])
     .controller('grafico1', ["$scope", "$state", "$http", function ($scope, $state, $http) {
 
-         $scope.options = {
-            chart: {
-                type: 'stackedAreaChart',
-                height: 450,
-                margin : {
-                    top: 20,
-                    right: 20,
-                    bottom: 30,
-                    left: 40
-                },
-                x: function(d){return d[0];},
-                y: function(d){return d[1];},
-                useVoronoi: false,
-                clipEdge: true,
-                duration: 100,
-                useInteractiveGuideline: true,
-                xAxis: {
-                    showMaxMin: false,
-                    tickFormat: function(d) {
-                        var meses = ["lunes", "martes", "miercoles", "jueves"]
-                        return meses[d]
-                    }
-                },
-                yAxis: {
-                    tickFormat: function(d){
-                        return d3.format(',.2f')(d);
-                    }
-                },
-                zoom: {
-                    enabled: true,
-                    scaleExtent: [1, 10],
-                    useFixedDomain: true,
-                    useNiceScale: false,
-                    horizontalOff: false,
-                    verticalOff: true,
-                    unzoomEventType: 'dblclick.zoom'
+        $http.get('/corpus/5a2f1c0b826ba8255a5c556e/matrix').then( function (data){
+
+            var k = 6
+            var X = nj.array(data.matrix_X), 
+            var R = nj.random([k, X.shape[1]])
+            var alpha = 10000000
+            var lambda = 0.05
+            var epsilon = 0.01
+            var maxiter = 100
+            var verbose = false
+
+            var jpp = JPP(X, R, k, alpha, lambda, epsilon, maxiter)
+
+            var matrix_M = jpp.M.tolist()
+
+            console.log("algo se murio", matrix_M)
+
+            var data_mapa = []
+            for (var i = 0; i < matrix_M.length; i++) {     
+                for (var j = 0; j < matrix_M[i].length; j++) {
+                    data_mapa.push([i, j, matrix_M[i][j]])
                 }
             }
-        }
 
-        $scope.data = [ 
-            {
-                "key": 1,
-                "values": [ [ 0 , 100] , [ 1 , 60] , [ 2 , 5.9507873460847] , [ 3 , 11.569146943813] ]
-            },
-            {
-                "key": 2,
-                "values": [ [ 0 , 100] , [ 1 , 60] , [ 2 , 3] , [ 3 , 4] ]
-            }            
-        ]
+            Highcharts.chart('container', {
+
+                chart: {
+                    type: 'heatmap',
+                    marginTop: 40,
+                    marginBottom: 80,
+                    plotBorderWidth: 1
+                },
+
+                title: {
+                    text: 'Mapa de calor de la matriz M por periodos'
+                },
+
+                xAxis: {
+                    categories: ['topico1', 'topico2', 'topico3', 'topico4', 'topico5']
+                },
+
+                yAxis: {
+                    categories: ['topico1', 'topico2', 'topico3', 'topico4', 'topico5'],
+                    title: null
+                },
+
+                colorAxis: {
+                    min: 0,
+                    minColor: '#FFFFFF',
+                    maxColor: Highcharts.getOptions().colors[0]
+                },
+
+                legend: {
+                    align: 'right',
+                    layout: 'vertical',
+                    margin: 0,
+                    verticalAlign: 'top',
+                    y: 25,
+                    symbolHeight: 280
+                },
+
+                tooltip: {
+                    formatter: function () {
+                        return '<b>' + this.series.xAxis.categories[this.point.x] + '</b> del periodo 1, se relaciona en <br><b>' + this.point.value + '</b>  con <b>' + this.series.yAxis.categories[this.point.y] + '</b> del periodo 2';
+                    }
+                },
+
+                series: [{
+                    name: 'Sales per employee',
+                    borderWidth: 1,
+                    data: data_mapa,
+                    dataLabels: {
+                        enabled: true,
+                        color: '#000000'
+                    }
+                }]
+
+            });
+
+        }).catch(function (error) {
+            console.log(error)
+        })
+
     }])
-    .controller('grafico2', function($scope){
+    .controller("home", [function () {
+
+    }])
+    .controller('grafico2', ["$scope", function($scope){
 
         $scope.options = {
             chart: {
@@ -218,4 +270,77 @@
         }
 
 
+}])
+/*
+setInterval(()=>{console.log("Not blocked code" + Math.random())}, 900)
+
+function bla(block){
+    //This will block for 10 sec, but
+    block(10000) //This blockCpu function is defined below
+    return "\n\nbla bla\n" //This is catched in the resolved promise
+
+}
+
+genericWorker(window, ["blockCpu", bla]).then(function (result){
+    console.log("End of blocking code", result)
 })
+.catch(function(error) { console.log(error) })
+*/
+
+/*  A Web Worker that does not use a File, it create that from a Blob
+    @cb_context, The context where the callback functions arguments are, ex: window
+    @cb, ["fn_name1", "fn_name2", function (fn1, fn2) {}]
+        The callback will be executed, and you can pass other functions to that cb
+*/
+/*function genericWorker(cb_context, cb) {
+    return new Promise(function (resolve, reject) {
+
+        if (!cb || !Array.isArray(cb))
+            return reject("Invalid data")
+
+        var callback = cb.pop()
+        var functions = cb
+
+        if (typeof callback != "function" || functions.some((fn)=>{return typeof cb_context[fn] != "function"}))
+            return reject(`The callback or some of the parameters: (${functions.toString()}) are not functions`)
+
+        if (functions.length>0 && !cb_context)
+            return reject("context is undefined")
+
+        callback = fn_string(callback) //Callback to be executed
+        functions = functions.map((fn_name)=> { return fn_string( cb_context[fn_name] ) })
+
+        var worker_file = window.URL.createObjectURL( new Blob(["self.addEventListener('message', function(e) { var bb = {}; var args = []; for (fn of e.data.functions) { bb[fn.name] = new Function(fn.args, fn.body); args.push(fn.name)}; var callback = new Function( e.data.callback.args, e.data.callback.body); args = args.map(function(fn_name) { return bb[fn_name] });  var result = callback.apply(null, args) ;self.postMessage( result );}, false)"]) )
+        var worker = new Worker(worker_file)
+
+        worker.postMessage({ callback: callback, functions: functions })
+
+        worker.addEventListener('error', function(error){ return reject(error.message) })
+
+        worker.addEventListener('message', function(e) {
+            resolve(e.data), worker.terminate()
+        }, false)
+
+        //From function to string, with its name, arguments and its body
+        function fn_string (fn) {
+            var name = fn.name, fn = fn.toString()
+
+            return { name: name, 
+                args: fn.substring(fn.indexOf("(") + 1, fn.indexOf(")")),
+                body: fn.substring(fn.indexOf("{") + 1, fn.lastIndexOf("}"))
+            }
+        }
+    })
+}*/
+
+//random blocking function
+/*
+function blockCpu(ms) {
+    var now = new Date().getTime();
+    var result = 0
+    while(true) {
+        result += Math.random() * Math.random();
+        if (new Date().getTime() > now +ms)
+            return;
+    }   
+}*/

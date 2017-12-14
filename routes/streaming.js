@@ -37,9 +37,9 @@ getCorpus().then(function (corpus_actual){
 	}).catch(printError)
 }).catch(printError)
 
-
 io.on('connection', function (socket) {
 	stream_socket = socket
+	console.log("bla", socket)
 })
 
 
@@ -78,6 +78,7 @@ function streamTweets() {
 			return
 
 		var pt = processTweet(tweet)
+		console.log(pt)
 		
 		if (docID() === documento.identificador && isToday(corpus.fecha)) { //Si el corpus es de hoy y el doc es correcto
 

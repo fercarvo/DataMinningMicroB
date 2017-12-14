@@ -2,7 +2,8 @@ var router = require('express').Router()
 var mongoose = require('mongoose')
 var moment = require('moment');
 var async = require('async')
-const { cleaner } = require('../util/process.js')
+const { cleaner, processPromise } = require('../util/process.js')
+var nj = require('numjs')
 var nj = require('numjs')
 var natural = require('natural')
 var TfIdf = natural.TfIdf 
@@ -53,8 +54,44 @@ router.get("/corpus/:id/matrix", function (req, res, next) {
 		_id: req.params.id
 	}
 
-	getX(c_data).then((x_matrix) => {		
-		return res.json(x_matrix)
+	getX(c_data).then(function(data) {
+		return res.json(data)
+
+	}).catch((error) => {
+		return next(error)
+	})
+})
+
+
+router.get("/corpus/:id/jpp", function (req, res, next) {
+
+	var c_data = {
+		_id: req.params.id
+	}
+
+	getX(c_data).then(function(data) {
+
+		var k = 6
+        //var x = nj.random([7, 13000])
+        var x = nj.array(data.matrix_X) 
+        var r = nj.random([k, x.shape[1]])
+        var alpha = 10000000
+        var lambda = 0.05
+        var epsilon = 0.01
+        var maxiter = 100
+        //var verbose = false
+
+        x = x.tolist()
+        r = r.tolist()
+
+		processPromise(__dirname + "/../util/cp_JPP.js", {k, x, r, alpha, lambda, epsilon, maxiter})
+			.then(function (data) {
+				return res.json(data)
+			})
+			.catch(function (error) {
+				return next(error)
+
+			})
 
 	}).catch((error) => {
 		return next(error)
@@ -229,7 +266,7 @@ function getX(corpus_data) {
 
 			palabras_corpus = contador(palabras_corpus)
 
-			for (palabra in palabras_corpus) {
+			for (palabra of palabras_corpus) {
 				var fila = []
 
 				corpus.tfidfs(palabra, (i, resultado) => {
@@ -243,7 +280,7 @@ function getX(corpus_data) {
 			matrix_X = matrix_X.T
 			matrix_X = matrix_X.tolist()
 
-			return resolve(matrix_X)
+			return resolve({matrix_X, palabras_corpus})
 
 		}).catch((error) => {
 			reject(error)
@@ -253,6 +290,7 @@ function getX(corpus_data) {
 	//Recibe array de string, devuelve dicccionario de cada palabra con su contador
 	function contador (words){
 		var counter = {}
+		var palabras = []
 
 		for (word of words) { //Cuento las veces que se repite cada palabra en el documento
 			if (counter[word]){
@@ -262,7 +300,10 @@ function getX(corpus_data) {
 			}
 		}
 
-		return counter
+		for (palabra in counter)
+			palabras.push(palabra)		
+
+		return palabras
 	}
 }
 
