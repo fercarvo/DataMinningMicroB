@@ -112,6 +112,12 @@ function processPromise (path, data) {
 		child.send(data)
 
 		child.on("message", function (result){
+
+			if (result.error) {
+				reject(new Error(result.error))
+				return child.kill()
+			}
+
 			resolve(result)
 			child.kill()
 		})

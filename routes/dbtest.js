@@ -71,6 +71,8 @@ router.get("/corpus/:id/jpp", function (req, res, next) {
 
 	getX(c_data).then(function(data) {
 
+		var palabras_corpus = data.palabras_corpus
+
 		var k = 6
         //var x = nj.random([7, 13000])
         var x = nj.array(data.matrix_X) 
@@ -86,7 +88,7 @@ router.get("/corpus/:id/jpp", function (req, res, next) {
 
 		processPromise(__dirname + "/../util/cp_JPP.js", {k, x, r, alpha, lambda, epsilon, maxiter})
 			.then(function (data) {
-				return res.json(data)
+				return res.json({JPP: data, palabras_corpus})
 			})
 			.catch(function (error) {
 				return next(error)

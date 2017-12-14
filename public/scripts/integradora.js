@@ -61,22 +61,55 @@
     }])
     .controller('grafico1', ["$scope", "$state", "$http", function ($scope, $state, $http) {
 
-        $http.get('/corpus/5a2f1c0b826ba8255a5c556e/matrix').then( function (data){
+        setTimeout(function(){
+            alert("Por favor, espere mientras se procesa la informacion")
+        }, 1)
+        $http.get('/corpus/5a321913cef11e36e621764d/jpp').then( function (res){
 
-            var k = 6
-            var X = nj.array(data.matrix_X), 
-            var R = nj.random([k, X.shape[1]])
-            var alpha = 10000000
-            var lambda = 0.05
-            var epsilon = 0.01
-            var maxiter = 100
-            var verbose = false
+            var matrix_M = res.data.JPP.M
 
-            var jpp = JPP(X, R, k, alpha, lambda, epsilon, maxiter)
 
-            var matrix_M = jpp.M.tolist()
+            genericWorker({palabras: res.data.palabras_corpus, H: res.data.JPP.H}, window, [function(data){
+                function findIndicesOfMax(inp, count) {
+                    var outp = [];
+                    for (var i = 0; i < inp.length; i++) {
+                        outp.push(i); // add index to output array
+                        if (outp.length > count) {
+                            outp.sort(function(a, b) { return inp[b] - inp[a]; }); // descending sort the output array
+                            outp.pop(); // remove the last index (index of smallest element in output array)
+                        }
+                    }
+                    return outp;
+                }
 
-            console.log("algo se murio", matrix_M)
+                var topicos = []
+                var h = data.H
+
+                for (var i = 0; i <h.length; i++) {
+                    //cada h[i] es un topico
+                    topicos.push({indice: i+1, maximos: findIndicesOfMax(h[i], 10)})
+                }
+
+                for (topico of topicos) {
+                    topico.maximos = topico.maximos.map((indice)=> {return data.palabras[indice]})
+                }
+
+                return topicos
+
+            }]).then(function(topicos) {
+                console.log("Los topicos y sus palabras son")
+
+                for (topico of topicos) {
+                    console.log(`topico ${topico.indice}:`, topico.maximos)
+                }
+
+                alert("La información sobre los topicos se encuentra en la consola")
+
+
+            }).catch(function() {
+                console.log("error worker")
+            })
+
 
             var data_mapa = []
             for (var i = 0; i < matrix_M.length; i++) {     
@@ -84,6 +117,12 @@
                     data_mapa.push([i, j, matrix_M[i][j]])
                 }
             }
+
+            var topicos = []
+
+            for (var i = 0; i < matrix_M.length; i++)
+                topicos.push(`topico ${i+1}`)
+            
 
             Highcharts.chart('container', {
 
@@ -99,11 +138,11 @@
                 },
 
                 xAxis: {
-                    categories: ['topico1', 'topico2', 'topico3', 'topico4', 'topico5']
+                    categories: topicos//['topico1', 'topico2', 'topico3', 'topico4', 'topico5']
                 },
 
                 yAxis: {
-                    categories: ['topico1', 'topico2', 'topico3', 'topico4', 'topico5'],
+                    categories: topicos,
                     title: null
                 },
 

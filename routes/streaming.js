@@ -39,7 +39,6 @@ getCorpus().then(function (corpus_actual){
 
 io.on('connection', function (socket) {
 	stream_socket = socket
-	console.log("bla", socket)
 })
 
 

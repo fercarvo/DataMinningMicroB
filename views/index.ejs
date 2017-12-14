@@ -158,7 +158,7 @@
         @cb, ["fn_name1", "fn_name2", function (fn1, fn2) {}]
             The callback will be executed, and you can pass other functions to that cb
     */
-    /*function genericWorker(cb_context, cb) {
+    function genericWorker(data, cb_context, cb) {
         return new Promise(function (resolve, reject) {
 
             if (!cb || !Array.isArray(cb))
@@ -176,10 +176,10 @@
             callback = fn_string(callback) //Callback to be executed
             functions = functions.map((fn_name)=> { return fn_string( cb_context[fn_name] ) })
 
-            var worker_file = window.URL.createObjectURL( new Blob(["self.addEventListener('message', function(e) { var bb = {}; var args = []; for (fn of e.data.functions) { bb[fn.name] = new Function(fn.args, fn.body); args.push(fn.name)}; var callback = new Function( e.data.callback.args, e.data.callback.body); args = args.map(function(fn_name) { return bb[fn_name] });  var result = callback.apply(null, args) ;self.postMessage( result );}, false)"]) )
+            var worker_file = window.URL.createObjectURL( new Blob(["self.addEventListener('message', function(e) { var bb = {}; var args = []; for (fn of e.data.functions) { bb[fn.name] = new Function(fn.args, fn.body); args.push(fn.name)}; var callback = new Function( e.data.callback.args, e.data.callback.body); args = args.map(function(fn_name) { return bb[fn_name] }); args.unshift(e.data.data);  var result = callback.apply(null, args) ;self.postMessage( result );}, false)"]) )
             var worker = new Worker(worker_file)
 
-            worker.postMessage({ callback: callback, functions: functions })
+            worker.postMessage({ callback, functions, data })
 
             worker.addEventListener('error', function(error){ return reject(error.message) })
 
@@ -197,7 +197,7 @@
                 }
             }
         })
-    }*/
+    }
 
 
 

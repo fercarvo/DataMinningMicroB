@@ -43,6 +43,24 @@ var users = [
 	},{
 		name: "eluniversocom",
 		id: "8225692"
+	},{
+		name: "ecuadortv",
+		id: "133184048"
+	},{
+		name: "mashirafael",
+		id: "209780362"
+	}, {
+		name: "lenin",
+		id: "913131817"
+	}, {
+		name: "lassoguillermo",
+		id: "300390462"
+	}, {
+		name: "ecuavisa",
+		id: "97513349"
+	}, {
+		name: "teleamazonasec",
+		id: "95217117"
 	}
 ]
 
