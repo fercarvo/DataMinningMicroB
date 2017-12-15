@@ -11,7 +11,7 @@ var { tokens } = require('../config.js')
 var { topicos, users } = require('../DB/topicos.js')
 var moment = require('moment')
 var mongoose = require('mongoose')
-const { processTweet } = require('../util/process.js')
+const { processTweet, isToday } = require('../util/process.js')
 
 var app = require('http').createServer()
 var io = require('socket.io')(app)
@@ -87,11 +87,11 @@ function streamTweets() {
 			return
 
 		var pt = processTweet(tweet)
-		//console.log(pt)
 		
 		if (docID() === documento.identificador && isToday(corpus.fecha)) { //Si el corpus es de hoy y el doc es correcto
 
 			saveTweet(pt, documento).then(function (tweet) {
+				//console.log(`\n${tweet.usuario}: ${tweet.tweet}`)
 				stream_socket.emit('tweet', pt) //Se envia el tweet por socket.io
 
 			}).catch(printError)
@@ -105,6 +105,7 @@ function streamTweets() {
 					documento = doc_actual
 
 					saveTweet(pt, documento).then(function (tweet) {
+						//console.log(`\n${tweet.usuario}: ${tweet.tweet}`)
 						stream_socket.emit('tweet', pt) //Se envia el tweet por socket.io
 
 					}).catch(printError)
@@ -217,20 +218,9 @@ function getDocument(corpus) {
 	})
 }
 
-//Recibe una fecha y hora, devuelve true si es de hoy, false caso contrario
-function isToday (date) {
-	var start = moment.utc().startOf('day').toDate()
-	var end = moment.utc().endOf('day').toDate()
-
-	if (date >= start && date <= end) 
-		return true
-	
-	return false
-}
-
 function printError(error) {
 	console.log("Error", error)
 }
 
 
-module.exports = router;
+module.exports = router

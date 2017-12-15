@@ -3,6 +3,7 @@ var snowball = require('node-snowball')
 var fs = require('fs')
 const { fork } = require('child_process')
 var nj = require('numjs')
+var moment = require('moment')
 
 
 module.exports = {
@@ -14,7 +15,8 @@ module.exports = {
 	quitarAcentos: quitarAcentos,
 	eachParallel, 
 	eachSeries,
-	cleanM
+	cleanM,
+	isToday
 }
 
 /*
@@ -29,6 +31,17 @@ function processTweet(tweet) {
 		clean_data : null,
 		usuario : "@" + tweet.user.screen_name,
 	}
+}
+
+//Recibe una fecha y hora, devuelve true si es de hoy, false caso contrario
+function isToday (date) {
+	var start = moment.utc().startOf('day').toDate()
+	var end = moment.utc().endOf('day').toDate()
+
+	if (date >= start && date <= end) 
+		return true
+	
+	return false
 }
 
 //Ejecuta en serie todas las operaciones

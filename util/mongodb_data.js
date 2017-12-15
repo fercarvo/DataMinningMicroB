@@ -2,7 +2,7 @@ var mongoose = require("mongoose")
 var Tweet = require('../models/Tweet.js')
 var Corpus = require('../models/Corpus.js')
 var Document = require('../models/Document.js')
-const { eachParallel, processPromise, cleanM } = require('../util/process.js')
+const { eachParallel, processPromise, cleanM, isToday } = require('../util/process.js')
 
 
 module.exports = { getDocuments, getX, getJPP }
@@ -83,23 +83,41 @@ function getTweets(doc) {
 function getX(corpus_data) {
 	return new Promise(function (resolve, reject){
 
-		getDocuments(corpus_data).then((documentos) => {
+		Corpus.findOne({_id: corpus_data._id}).exec().then((corpus)=> {
 
-			processPromise(`${__dirname}/cp_x_matrix.js`, documentos)
-				.then(function (data) {
-					data.matrix_X = cleanM(data.matrix_X)
-					resolve(data)
-				})
-				.catch(function (error) {
-					reject(error)
-				})
+			if (corpus.X.length>0 && !isToday(corpus.fecha))
+				return resolve({matrix_X: corpus.X, palabras_corpus: corpus.palabras})
 
-		}).catch(function (error) {
-			reject(error)
+			getDocuments(corpus_data).then((documentos)=> {
+
+				console.log("Antes de process promise")
+
+				processPromise(`${__dirname}/cp_x_matrix.js`, documentos)
+					.then((data)=> {
+
+						data.matrix_X = cleanM(data.matrix_X)
+
+						if (!isToday(corpus.fecha)) {
+							corpus.X = data.matrix_X
+							corpus.palabras = data.palabras_corpus
+							corpus.save()
+						}
+
+						return resolve(data)
+					})
+					.catch((error)=> {
+						return reject(error) //Error al procesar la matriz X
+					})
+
+			}).catch((error)=> {
+				reject(error) //Error al obtener los docs de la BD
+			})
+
+
+
+		}).catch((error)=> {
+			return reject(error)
 		})
-
-		
-
 	})
 }
 
@@ -119,5 +137,3 @@ function getJPP(x, r, k, alpha, lambda, epsilon, maxiter) {
 			})
 	})
 }
-
-

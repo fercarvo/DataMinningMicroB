@@ -5,13 +5,18 @@ const { cleaner } = require("../util/process.js")
 
 process.on('message', function (documentos) {
 
+	console.log("Dentro del childprocess")
+
 	var corpus = new TfIdf()
 
 	var palabras_corpus = [] //Todas las palabras del corpus concatenadas doc_1.concat(doc_2)
 	var matrix_X = []
 
 	//Se procesa cada tweet, steaming, etc..
+	var num_docs = documentos.length
+
 	for (doc of documentos) {
+		console.time("dentro for docs")
 
 		doc.words = [] //Todas las palabras de un documento
 		doc.cadena = "" //Todas las palabras del doc separadas por un espacio
@@ -25,7 +30,9 @@ process.on('message', function (documentos) {
 
 		corpus.addDocument(doc.cadena)
 
-		palabras_corpus = palabras_corpus.concat(doc.words) //Se concatenan todas las palabras de todos los docs				
+		palabras_corpus = palabras_corpus.concat(doc.words) //Se concatenan todas las palabras de todos los docs
+		console.log(`quedan ${--num_docs}`)
+		console.timeEnd("dentro for docs")				
 	}
 
 	palabras_corpus = contador(palabras_corpus)

@@ -22,17 +22,26 @@ router.get("/corpus", function (req, res, next){
 //Se obtiene la matriz X del corpus seleccionado
 router.get("/corpus/:id/matrix", function (req, res, next) {
 
-	var c_data = {
-		_id: req.params.id
-	}
+	setTimeout(function(){
+		if (!res.headersSent)
+			return res.json("EL procesamiento tardara un tiempo mas, por favor recarge la pagina en unos instantes")
 
-	getX(c_data).then(function(data) {
-		return res.json(data)
+	}, 20000)
+
+	getX({_id: req.params.id}).then(function(data) {
+
+		if (!res.headersSent)
+			return res.json(data)
+
+		return console.log("Se termino el procesamiento de X")
 
 	}).catch((error) => {
 		return next(error)
 	})
+
 })
+
+
 
 //Se obtiene el JPP resultante del corpus seleccionado
 router.get("/corpus/:id/jpp", function (req, res, next) {
