@@ -5,8 +5,6 @@ const { cleaner } = require("../util/process.js")
 
 process.on('message', function (documentos) {
 
-	console.log("Dentro del childprocess")
-
 	var corpus = new TfIdf()
 
 	var palabras_corpus = [] //Todas las palabras del corpus concatenadas doc_1.concat(doc_2)
@@ -19,14 +17,13 @@ process.on('message', function (documentos) {
 		console.time("dentro for docs")
 
 		doc.words = [] //Todas las palabras de un documento
-		doc.cadena = "" //Todas las palabras del doc separadas por un espacio
 
 		for (tweet of doc.tweets) {
-			//console.log("asdasda", tweet.tweet)
 			tweet.clean_data = cleaner(tweet.tweet)
 			doc.words = doc.words.concat(tweet.clean_data) //Se concatenan todos los clean data en doc.words
-			doc.cadena += doc.words.join(' ') //Se unen todas las palabras en un solo string 
 		}
+
+		doc.cadena = doc.words.join(" ")
 
 		corpus.addDocument(doc.cadena)
 
@@ -36,7 +33,7 @@ process.on('message', function (documentos) {
 	}
 
 	palabras_corpus = contador(palabras_corpus)
-
+	console.time("tf")
 	for (palabra of palabras_corpus) {
 		var fila = []
 
@@ -46,12 +43,13 @@ process.on('message', function (documentos) {
 
 		matrix_X.push(fila)
 	}
+	console.timeEnd("tf")
 
 	matrix_X = nj.array(matrix_X)
 	matrix_X = matrix_X.T
 	matrix_X = matrix_X.tolist()
 
-	var data_to_send = {matrix_X, palabras_corpus}
+	var data_to_send = {X: matrix_X, palabras: palabras_corpus}
 
 	process.send(data_to_send)
 }) 
@@ -62,18 +60,13 @@ function contador (words){
 	var palabras = []
 
 	for (word of words) { //Cuento las veces que se repite cada palabra en el documento
-		if (isNaN(word)) { //No cuenta los numeros
-			
-			if (counter[word])
-				counter[word]++
-			else
-				counter[word] = 1			
+		if (!counter[word]) { //Si no existe
+			if (isNaN(word)){ //Si es letras
+				counter[word] = 1
+				palabras.push(word) 
+			}
 		}
-
-	}
-
-	for (palabra in counter)
-		palabras.push(palabra)		
+	}	
 
 	return palabras
 }

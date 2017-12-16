@@ -35,6 +35,7 @@ app.use('/', require('./routes/index'))
 app.use('/', require('./routes/streaming'))
 app.use('/', require('./routes/test'))
 app.use('/', require('./routes/dbtest'))
+app.use('/', require('./routes/sockets'))
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -53,5 +54,6 @@ app.use(function(err, req, res, next) {
 	res.status(err.status || 500)
 	res.render('error')
 })
+
 
 module.exports = app

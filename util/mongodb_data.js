@@ -2,10 +2,11 @@ var mongoose = require("mongoose")
 var Tweet = require('../models/Tweet.js')
 var Corpus = require('../models/Corpus.js')
 var Document = require('../models/Document.js')
-const { eachParallel, processPromise, cleanM, isToday } = require('../util/process.js')
+var moment = require('moment')
+const { eachSeries, eachParallel, processPromise, cleanM, isToday } = require('../util/process.js')
 
 
-module.exports = { getDocuments, getX, getJPP }
+module.exports = { getDocuments, getX, getJPP, processXmatrices }
 
 //FUncion que recibe un corpus y devuelve todos sus documentos con sus respectivos tweets
 function getDocuments(corpus) {
@@ -85,21 +86,22 @@ function getX(corpus_data) {
 
 		Corpus.findOne({_id: corpus_data._id}).exec().then((corpus)=> {
 
-			if (corpus.X.length>0 && !isToday(corpus.fecha))
-				return resolve({matrix_X: corpus.X, palabras_corpus: corpus.palabras})
+			if (corpus.X.length>0 && !isToday(corpus.fecha)) //Si existe X en BD y no es de hoy, se retorna
+				return resolve({X: corpus.X, palabras: corpus.palabras})
 
 			getDocuments(corpus_data).then((documentos)=> {
 
-				console.log("Antes de process promise")
+				if (!documentos || documentos.length===0)
+					return reject(new Error("Corpus sin documentos"))
 
 				processPromise(`${__dirname}/cp_x_matrix.js`, documentos)
 					.then((data)=> {
 
-						data.matrix_X = cleanM(data.matrix_X)
+						data.X = cleanM(data.X) //Se limpia la matriz X de datos no numericos
 
 						if (!isToday(corpus.fecha)) {
-							corpus.X = data.matrix_X
-							corpus.palabras = data.palabras_corpus
+							corpus.X = data.X
+							corpus.palabras = data.palabras
 							corpus.save()
 						}
 
@@ -128,12 +130,47 @@ function getJPP(x, r, k, alpha, lambda, epsilon, maxiter) {
 			.then(function (data) {
 
 				for (key in data)
-					data[key] = cleanM(data[key])
+					data[key] = cleanM(data[key]) //Se itera las 3 matrices para limpiar datos no numericos
 
-				resolve(data)
+				return resolve(data)
 			})
 			.catch(function (error){
-				reject(error)
+				return reject(error)
 			})
 	})
 }
+
+function processXmatrices () {
+	return new Promise(function (resolve, reject){
+		var start = moment.utc().startOf('day').toDate() //Inicio del dia
+
+		Corpus.find({/*fecha: {$lt: start}*/}).exec().then(function (data){ //Busca los que no pertenezcan a hoy
+
+			console.log("\nCorpuses a procesar X", data.length)
+
+			eachSeries(data, function(corpus, next, error){
+
+				console.time(`Corpus ${corpus._id}...`)
+
+				getX(corpus)
+					.then(()=> { 
+						console.timeEnd(`Corpus ${corpus._id}...`)
+						next() 
+					})
+					.catch((e)=> { error(e) })
+
+			}).then(()=> {
+				return resolve()
+			}).catch((error)=> {
+				return reject(error)
+			})
+
+
+
+
+
+		}).catch(function(error) { //Error mongoDB Corpus Model
+			return reject(error)
+		})
+	}) 
+} 

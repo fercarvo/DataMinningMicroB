@@ -1,9 +1,6 @@
 /*
-	Esta sección se encarga de encender o apagar la recolección de tweets
-	localhost:3000/stream/on
-	localhost:3000/stream/off
+	Esta sección se encarga de la recolección de tweets
 */
-
 
 var router = require('express').Router()
 var Twitter = require('twitter');
@@ -12,11 +9,6 @@ var { topicos, users } = require('../DB/topicos.js')
 var moment = require('moment')
 var mongoose = require('mongoose')
 const { processTweet, isToday } = require('../util/process.js')
-
-var app = require('http').createServer()
-var io = require('socket.io')(app)
-
-app.listen(3001)
 
 var Tweet = require('../models/Tweet.js')
 var Corpus = require('../models/Corpus.js')
@@ -30,8 +22,12 @@ var client = new Twitter({
 	}
 )
 
+//var app = require('http').createServer()
+var io = require('socket.io')( require('http').createServer().listen(3001) )
+
+//app.listen(3001)
+
 var stream = null //Streaming de tweets
-var stream_socket = null //socket para enviar los tweets de streaming
 
 var corpus = null //corpus actual
 var documento = null //documento actual
@@ -42,33 +38,12 @@ getCorpus().then(function (corpus_actual){
 		corpus = corpus_actual
 		documento = doc_actual
 
+
+		stream = streamTweets()
+
+
 	}).catch(printError)
 }).catch(printError)
-
-io.on('connection', function (socket) {
-	stream_socket = socket
-})
-
-
-router.get("/stream/on", function(req, res, next){
-
-	if (stream) 
-		stream.destroy()
-
-	stream = streamTweets()
-	console.log("streamming on")
-	return res.send("streamming on")
-})
-
-router.get("/stream/off", function(req, res, next) {
-
-	if (stream) 
-		stream.destroy()
-
-	stream = null
-	console.log("streamming off")	
-	return res.send("streamming off")
-})
 
 
 function streamTweets() {
@@ -81,9 +56,11 @@ function streamTweets() {
 
 	var stream = client.stream('statuses/filter', stream_data)
 
+	console.log("Inicio de streamming de tweets")
+
 	stream.on('data', function(tweet) {
 
-		if (tweet.retweeted_status) //SI es un retweet, se rechaza
+		if (tweet.retweeted_status) //SI es un retweet, se rechaza todo
 			return
 
 		var pt = processTweet(tweet)
@@ -91,8 +68,7 @@ function streamTweets() {
 		if (docID() === documento.identificador && isToday(corpus.fecha)) { //Si el corpus es de hoy y el doc es correcto
 
 			saveTweet(pt, documento).then(function (tweet) {
-				//console.log(`\n${tweet.usuario}: ${tweet.tweet}`)
-				stream_socket.emit('tweet', pt) //Se envia el tweet por socket.io
+				io.emit("tweet", tweet)
 
 			}).catch(printError)
 
@@ -105,8 +81,7 @@ function streamTweets() {
 					documento = doc_actual
 
 					saveTweet(pt, documento).then(function (tweet) {
-						//console.log(`\n${tweet.usuario}: ${tweet.tweet}`)
-						stream_socket.emit('tweet', pt) //Se envia el tweet por socket.io
+						io.emit("tweet", tweet)
 
 					}).catch(printError)
 

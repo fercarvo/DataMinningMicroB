@@ -4,6 +4,7 @@ var fs = require('fs')
 const { fork } = require('child_process')
 var nj = require('numjs')
 var moment = require('moment')
+var io = require('../routes/sockets.js').io
 
 
 module.exports = {
@@ -16,8 +17,10 @@ module.exports = {
 	eachParallel, 
 	eachSeries,
 	cleanM,
-	isToday
+	isToday,
+	io
 }
+
 
 /*
 	Funcion que procesa un tweet y lo devuelve limpio
@@ -46,33 +49,25 @@ function isToday (date) {
 
 //Ejecuta en serie todas las operaciones
 function eachSeries(array, fn) {
-	return new Promise(function (resolveGlobal, rejectGlobal) {
+	return new Promise(function (resolve, reject) {
 
-		var promises = []
-		var next = 0
+		var resolved_data = []
+		var index = 0
 
-		fn(array[next], resolveObj, rejectObj)
+		fn(array[index], next, error)
 
-		function resolveObj(data) {
+		function next(data) {
 
-			promises.push( Promise.resolve(data) )
+			resolved_data.push( data )
 
-			next++
-
-			if (next >= array.length) {
-				Promise.all(promises).then(function (data) {
-					resolveGlobal(data)
-				}).catch(function (error) {
-					rejectGlobal(error)
-				})
-			} else {
-				fn(array[next], resolveObj, rejectObj)
-			}
-
+			if (++index < array.length)
+				fn(array[index], next, error)
+			else
+				resolve(resolved_data)
 		}
 
-		function rejectObj(error) {
-			return rejectGlobal(error)
+		function error(error) {
+			return reject(error)
 		}
 
 	})
@@ -235,7 +230,10 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 	var H_1, H_2
 	var delta
 
+
+
 	while ((Math.abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)) {
+		console.log(M)
 		J = nj.dot(M, R) // Multiplicacion matricial
 
 		//W =  W .* ( M_1  ./ max(W*(M_2),eps) ); % eps = 2^(-52)

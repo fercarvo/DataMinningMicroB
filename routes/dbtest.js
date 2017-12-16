@@ -2,43 +2,68 @@ var router = require('express').Router()
 var nj = require('numjs')
 var mongoose = require("mongoose")
 
-const { getX, getJPP } = require("../util/mongodb_data.js")
+const { getX, getJPP, processXmatrices } = require("../util/mongodb_data.js")
 
 
 var Tweet = require('../models/Tweet.js')
 var Corpus = require('../models/Corpus.js')
 var Document = require('../models/Document.js')
 
+var cache_all_corpus = []
+var cache_matrix = []
+var cache_jpp = []
+
+/*processXmatrices().then(()=> {
+	console.log("\n\nSe termino el procesamiento de las matrices X")
+}).catch((error)=> {
+	console.log("\n\nError procesamiento de matrices X", error)
+})*/
+
 //Lista de corpus
 router.get("/corpus", function (req, res, next){
-	Corpus.find({}).exec().then(function (docs){
-		return res.json(docs)
 
-	}).catch(function (error){
-		return next(error)
+	if (cache_all_corpus.length>0) 
+		return res.json(cache_all_corpus)	
+
+	Corpus.find({}, "fecha palabras").exec(function(err, docs){
+		if (err)
+			return next(error)
+
+		cache_all_corpus = docs
+		return res.json(docs)
 	})
 })
+
+
+
+router.get("/corpus/:id/documentos", function (req, res, next){
+
+	Document.find({_corpus: req.params.id}).exec(function(err, docs){
+		if (err)
+			return next(error)
+
+		return res.json(docs)
+	})
+})
+
+
+
 
 //Se obtiene la matriz X del corpus seleccionado
 router.get("/corpus/:id/matrix", function (req, res, next) {
 
-	setTimeout(function(){
-		if (!res.headersSent)
-			return res.json("EL procesamiento tardara un tiempo mas, por favor recarge la pagina en unos instantes")
+	var cache = cache_matrix.find((corpus)=> { return corpus._id.toString()===req.params.id.toString() })
 
-	}, 20000)
+	if (cache)
+		return res.json(cache)
 
-	getX({_id: req.params.id}).then(function(data) {
+	Corpus.findOne({_id: req.params.id}, "palabras X").exec(function (err, data){
+		if (err)
+			return next(err)
 
-		if (!res.headersSent)
-			return res.json(data)
-
-		return console.log("Se termino el procesamiento de X")
-
-	}).catch((error) => {
-		return next(error)
+		cache_matrix.push(data)
+		return res.json(data)
 	})
-
 })
 
 
@@ -46,13 +71,24 @@ router.get("/corpus/:id/matrix", function (req, res, next) {
 //Se obtiene el JPP resultante del corpus seleccionado
 router.get("/corpus/:id/jpp", function (req, res, next) {
 
-	getX({_id: req.params.id}).then(function(data) {
+	var cache = cache_jpp.find((obj)=> {return obj._id==req.params.id})
 
-		var palabras_corpus = data.palabras_corpus
+	if (cache)
+		return res.json(cache)
 
-		var k = 6
+	Corpus.findOne({_id: req.params.id}).exec(function(err, data){
+
+		if (err)
+			return next(err)
+
+		if (data.palabras.length <= 0 || data.X.length <= 0)
+			return next(new Error("No se ha calculado aun los datos de este corpus"))
+
+		var palabras_corpus = data.palabras
+
+		var k = 10
         //var x = nj.random([7, 13000])
-        var x = nj.array(data.matrix_X) 
+        var x = nj.array(data.X) 
         var r = nj.random([k, x.shape[1]])
         var alpha = 10000000
         var lambda = 0.05
@@ -63,19 +99,17 @@ router.get("/corpus/:id/jpp", function (req, res, next) {
         x = x.tolist()
         r = r.tolist()
 
-        console.time("JPP")
-
         getJPP(x, r, k, alpha, lambda, epsilon, maxiter)
         	.then(function (data) {
-        		console.timeEnd("JPP")
+
+        		cache_jpp.push({JPP: data, palabras_corpus, _id: req.params.id})
+
         		return res.json({JPP: data, palabras_corpus})
         	})
         	.catch(function (error) {
         		return next(error)
         	})
 
-	}).catch((error) => {
-		return next(error)
 	})
 })
 
