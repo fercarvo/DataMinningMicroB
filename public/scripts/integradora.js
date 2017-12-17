@@ -78,8 +78,8 @@
                     for (var i = 0; i < inp.length; i++) {
                         outp.push(i); // add index to output array
                         if (outp.length > count) {
-                            outp.sort(function(a, b) { return inp[b] - inp[a]; }); // descending sort the output array
-                            outp.pop(); // remove the last index (index of smallest element in output array)
+                            outp.sort((a, b) => inp[b] - inp[a]) // descending sort the output array
+                            outp.pop() // remove the last index (index of smallest element in output array)
                         }
                     }
                     return outp;
@@ -90,11 +90,11 @@
 
                 for (var i = 0; i <h.length; i++) {
                     //cada h[i] es un topico
-                    topicos.push({indice: i+1, maximos: findIndicesOfMax(h[i], 10)})
+                    topicos.push({indice: i+1, maximos: findIndicesOfMax(h[i], 15)})
                 }
 
                 for (topico of topicos) {
-                    topico.maximos = topico.maximos.map((indice)=> {return data.palabras[indice]})
+                    topico.maximos = topico.maximos.map((indice)=> {return data.palabras[indice]}).sort()
                 }
 
                 return topicos

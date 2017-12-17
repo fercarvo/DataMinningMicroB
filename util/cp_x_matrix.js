@@ -1,21 +1,14 @@
-var natural = require('natural')
-var TfIdf = natural.TfIdf
 var nj = require('numjs')
-const { cleaner } = require("../util/process.js")
+const { cleaner, eachSeries } = require("../util/process.js")
 
 process.on('message', function (documentos) {
 
-	var corpus = new TfIdf()
-
 	var palabras_corpus = [] //Todas las palabras del corpus concatenadas doc_1.concat(doc_2)
-	var matrix_X = []
+	var corpus = []
+	var X = []
 
 	//Se procesa cada tweet, steaming, etc..
-	var num_docs = documentos.length
-
 	for (doc of documentos) {
-		console.time("dentro for docs")
-
 		doc.words = [] //Todas las palabras de un documento
 
 		for (tweet of doc.tweets) {
@@ -23,33 +16,23 @@ process.on('message', function (documentos) {
 			doc.words = doc.words.concat(tweet.clean_data) //Se concatenan todos los clean data en doc.words
 		}
 
-		doc.cadena = doc.words.join(" ")
-
-		corpus.addDocument(doc.cadena)
+		corpus.push(doc.words)
 
 		palabras_corpus = palabras_corpus.concat(doc.words) //Se concatenan todas las palabras de todos los docs
-		console.log(`quedan ${--num_docs}`)
-		console.timeEnd("dentro for docs")				
 	}
 
 	palabras_corpus = contador(palabras_corpus)
-	console.time("tf")
-	for (palabra of palabras_corpus) {
-		var fila = []
 
-		corpus.tfidfs(palabra, (i, resultado) => {
-			fila.push(resultado)
-		})
+	var cont_pa = palabras_corpus.length
 
-		matrix_X.push(fila)
-	}
-	console.timeEnd("tf")
+	for (palabra of palabras_corpus) //Por cada palabra se ejecuta el tfidf y se retorna un Array[]
+		X.push( tf_idf(corpus, palabra) )
 
-	matrix_X = nj.array(matrix_X)
-	matrix_X = matrix_X.T
-	matrix_X = matrix_X.tolist()
+	X = nj.array(X)
+	X = X.T //La resultante es TERMINO x DOCUMENTO, por eso se traspone
+	X = X.tolist()
 
-	var data_to_send = {X: matrix_X, palabras: palabras_corpus}
+	var data_to_send = {X: X, palabras: palabras_corpus}
 
 	process.send(data_to_send)
 }) 
@@ -69,4 +52,29 @@ function contador (words){
 	}	
 
 	return palabras
+}
+
+function tf_idf (corpus, word) {
+
+	var tf = (document, word)=> {
+		var td = document.filter((value)=> value===word).length
+		return Math.log10(1 + td)
+	}
+
+	var idf = (corpus, word)=> {
+		nt = 1
+		for (doc of corpus) {
+			if (doc.indexOf(word) > -1)
+				nt++
+		}
+		return Math.log10(1 + ( corpus.length / nt ) )
+	}
+
+	var result = [] //palabra por cada documento
+	var idf = idf(corpus, word)
+
+	for (doc of corpus)
+		result.push( (tf(doc, word)*idf) + 0.000000001 )
+
+	return result
 }

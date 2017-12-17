@@ -74,6 +74,9 @@ function streamTweets() {
 
 		} else {
 
+			corpus = null
+			documento = null
+
 			getCorpus().then(function (corpus_actual){
 				getDocument(corpus_actual).then(function(doc_actual) {
 
@@ -112,6 +115,9 @@ function docID () {
 function saveTweet(obj, documento) {
 	return new Promise(function (resolve, reject){
 
+		if (!documento)
+			return reject(new Error("No existe documento"))
+
 		new Tweet({
 			_document: documento._id,
 			tweet: obj.tweet,
@@ -119,13 +125,11 @@ function saveTweet(obj, documento) {
 			clean_data: obj.clean_data,
 			usuario: obj.usuario
 		})
-		.save()
-		.then(function (tweet){
-			resolve(tweet)
-
-		})
-		.catch(function (error) {
-			reject(error)
+		.save((error, tweet)=> {
+			if (error)
+				return reject(error)
+			
+			return resolve(tweet)
 		})
 	})
 }
@@ -138,29 +142,21 @@ function getCorpus() {
 		var start = moment.utc().startOf('day').toDate()
 		var end = moment.utc().endOf('day').toDate()
 
-		Corpus.findOne({fecha: {$gte: start, $lt: end}})
-			.exec()
-			.then(function (doc) {
-
-				if (doc) 
-					return resolve(doc) //Si existe el corpus, lo devuelvo
-
-				
-				new Corpus({
-					fecha: moment.utc().toDate()
-				}).save()
-				.then(function (doc) { //SI no, creo uno y lo devuelvo
-					return resolve(doc)
-
-				})
-				.catch(function (error){
-					return reject(error)
-				})
-				
-
-			}).catch(function(error) {
+		Corpus.findOne({fecha: {$gte: start, $lt: end}}).exec((error, corpus)=> {
+			if (error) 
 				return reject(error)
+
+			if (corpus)
+				return resolve(corpus)
+
+			new Corpus({fecha: moment.utc().toDate() }).save((error, saved)=> {
+				if (error)
+					return reject(error)
+
+				return resolve(saved)
 			})
+
+		})
 	})
 }
 

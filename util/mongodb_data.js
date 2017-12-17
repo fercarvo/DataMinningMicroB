@@ -84,28 +84,23 @@ function getTweets(doc) {
 function getX(corpus_data) {
 	return new Promise(function (resolve, reject){
 
-		Corpus.findOne({_id: corpus_data._id}).exec().then((corpus)=> {
+		Corpus.findOne({_id: corpus_data._id}).exec(function (error, corpus){
 
-			if (corpus.X.length>0 && !isToday(corpus.fecha)) //Si existe X en BD y no es de hoy, se retorna
-				return resolve({X: corpus.X, palabras: corpus.palabras})
+			if (error)
+				return reject(error)
 
 			getDocuments(corpus_data).then((documentos)=> {
-
-				if (!documentos || documentos.length===0)
-					return reject(new Error("Corpus sin documentos"))
 
 				processPromise(`${__dirname}/cp_x_matrix.js`, documentos)
 					.then((data)=> {
 
 						data.X = cleanM(data.X) //Se limpia la matriz X de datos no numericos
 
-						if (!isToday(corpus.fecha)) {
-							corpus.X = data.X
-							corpus.palabras = data.palabras
-							corpus.save()
-						}
+						corpus.X = data.X
+						corpus.palabras = data.palabras
 
-						return resolve(data)
+						return resolve(corpus.toObject())
+
 					})
 					.catch((error)=> {
 						return reject(error) //Error al procesar la matriz X
@@ -115,10 +110,6 @@ function getX(corpus_data) {
 				reject(error) //Error al obtener los docs de la BD
 			})
 
-
-
-		}).catch((error)=> {
-			return reject(error)
 		})
 	})
 }
@@ -140,13 +131,14 @@ function getJPP(x, r, k, alpha, lambda, epsilon, maxiter) {
 	})
 }
 
-function processXmatrices () {
+//No usar, no guarda datos
+function processXmatrices () {/*
 	return new Promise(function (resolve, reject){
 		var start = moment.utc().startOf('day').toDate() //Inicio del dia
 
-		Corpus.find({/*fecha: {$lt: start}*/}).exec().then(function (data){ //Busca los que no pertenezcan a hoy
+		Corpus.find({fecha: {$lt: start}}).exec().then(function (data){ //Busca los que no pertenezcan a hoy
 
-			console.log("\nCorpuses a procesar X", data.length)
+			console.log("\nCorpuses a procesar", data.length)
 
 			eachSeries(data, function(corpus, next, error){
 
@@ -173,4 +165,4 @@ function processXmatrices () {
 			return reject(error)
 		})
 	}) 
-} 
+*/} 

@@ -4,7 +4,6 @@ var fs = require('fs')
 const { fork } = require('child_process')
 var nj = require('numjs')
 var moment = require('moment')
-var io = require('../routes/sockets.js').io
 
 
 module.exports = {
@@ -17,8 +16,7 @@ module.exports = {
 	eachParallel, 
 	eachSeries,
 	cleanM,
-	isToday,
-	io
+	isToday
 }
 
 
@@ -80,7 +78,7 @@ function eachParallel(array, fn) {
 		var promises = []
 
 		for (obj of array ) {
-			fn(obj, resolveObj, rejectObj)
+			fn(obj, resolveObj, error)
 		}
 
 		function resolveObj(data) {
@@ -96,8 +94,9 @@ function eachParallel(array, fn) {
 
 		}
 
-		function rejectObj(error) {
-			rejectGlobal(error)
+		function error(error) {
+			promises.push( Promise.reject(error) )
+			rejectGlobal(promises)
 		}	
 
 	})
@@ -205,6 +204,40 @@ function processPromise (path, data) {
 */
 function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 
+	var dot = (A, B) => nj.dot(A,B)
+
+	var ComputeLoss = (X, W, H, M, R, reg_norm, reg_temp, trXX, I)=>{
+		var WtW = dot(W.T, W)
+		var MR = dot(M, R)
+		var WH = dot(W, H)
+		var WMR = dot(W, MR)
+
+		var tr1 = trXX - (2*tr(X, WH)) + (tr(WH, WH))
+		var tr2 = trXX - (2*tr(X,WMR)) + (tr(WMR, WMR))
+		var tr3 = reg_temp * ( tr(M,M) - (2 * M.diag().sum()) + (I.diag().sum()) )
+		var tr4 = reg_norm * (H.sum() + W.sum() + M.sum())
+		var Obj = tr1 + tr2 + tr3 + tr4
+
+		return Obj
+	}
+
+	var maxMatlab = (matrix, escalar)=>{
+		var temp = matrix.tolist()
+		for (var i = 0; i < temp.length; i++) {
+			for (var j = 0; j < temp[0].length; j++) {
+				if (escalar > temp[i][j])
+					temp[i][j] = escalar
+			}
+		}
+
+		return nj.array(temp)
+	}
+
+	var tr = (A, B)=>{
+		var mult = A.multiply(B)
+		return mult.sum()
+	}
+
 	X = nj.array( cleanM(X) )
 	R = nj.array( cleanM(R) )
 
@@ -233,29 +266,29 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 
 
 	while ((Math.abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)) {
-		console.log(M)
-		J = nj.dot(M, R) // Multiplicacion matricial
+
+		J = dot(M, R) // Multiplicacion matricial
 
 		//W =  W .* ( M_1  ./ max(W*(M_2),eps) ); % eps = 2^(-52)
-		W_1 = nj.dot(X, (H.T).add(J.T) )//X*(H'+J')
-		W_2 = ( ( nj.dot(J, J.T)).add( nj.dot(H, H.T)) ).add(lambda)   //((J*J')+(H*H')+ lambda) //
-		W_3 = nj.dot(W, W_2)
+		W_1 = dot(X, (H.T).add(J.T) )//X*(H'+J')
+		W_2 = ( ( dot(J, J.T)).add( dot(H, H.T)) ).add(lambda)   //((J*J')+(H*H')+ lambda) //
+		W_3 = dot(W, W_2)
 		W_4 = maxMatlab(W_3, eps) //////////////////////////////////////////
 		W = W.multiply( W_1.divide( W_4 ))
 
-		WtW = nj.dot( W.T , W)//W'*W
-		WtX = nj.dot( W.T, X) //W'*X;
+		WtW = dot( W.T , W)//W'*W
+		WtX = dot( W.T, X) //W'*X;
 
 		//M = M .* ( ((WtX*R') + (alpha*I)) ./ max( (WtW*M*R*R') + ( (alpha)*M)+lambda,eps) );
-		M_1 = ( nj.dot(WtX, R.T) ).add( I.multiply(alpha))   //(WtX*R') + (alpha*I)
-		M_2 = nj.dot( nj.dot( nj.dot(WtW, M) , R) , R.T) //(WtW*M*R*R')
+		M_1 = ( dot(WtX, R.T) ).add( I.multiply(alpha))   //(WtX*R') + (alpha*I)
+		M_2 = dot( dot( dot(WtW, M) , R) , R.T) //(WtW*M*R*R')
 		M_3 = ( M.multiply(alpha) ).add(lambda)  //( (alpha)*M) + lambda
 		M_4 = M_2.add(M_3)// (WtW*M*R*R') + ( (alpha)*M) + lambda
 		M_5 = maxMatlab(M_4, eps)
 		M = M.multiply( M_1.divide(M_5)) //M_1 ./ M_5
 
 		//H = H .* (WtX./max(WtW*H+lambda,eps));
-		H_1 = ( nj.dot(WtW, H)).add(lambda)//WtW*H+lambda
+		H_1 = ( dot(WtW, H)).add(lambda)//WtW*H+lambda
 		H_2 = maxMatlab(H_1, eps)
 		H = H.multiply( WtX.divide(H_2) ) //H .* (WtX./max(H_1,eps));
 
@@ -271,56 +304,6 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 		H: H.tolist(),
 		M: M.tolist() 
 	}	
-}
-
-
-/*
-	function Obj = computeLoss(X,W,H,M,R,reg_norm,reg_temp, trXX, I)
-	    WtW = W' * W;
-	    MR = M*R;
-	    WH = W * H;
-	    WMR = W * MR;    
-	    tr1 = trXX - 2*tr(X,WH) + tr(WH,WH);
-	    tr2 = trXX - 2*tr(X,WMR) + tr(WMR,WMR);
-	    tr3 = reg_temp*(tr(M,M) - 2*trace(M)+ trace(I));
-	    tr4 = reg_norm * (sum(sum(H)) + sum(sum(W)) + sum(sum(M)) );
-	    Obj = tr1+ tr2 + tr3+ tr4;    
-	end
-*/
-function ComputeLoss(X, W, H, M, R, reg_norm, reg_temp, trXX, I){
-	var WtW = nj.dot(W.T, W)
-	var MR = nj.dot(M, R)
-	var WH = nj.dot(W, H)
-	var WMR = nj.dot(W, MR)
-
-	var tr1 = trXX - (2*tr(X, WH)) + (tr(WH, WH))
-	var tr2 = trXX - (2*tr(X,WMR)) + (tr(WMR, WMR))
-	var tr3 = reg_temp * ( tr(M,M) - (2 * M.diag().sum()) + (I.diag().sum()) )
-	var tr4 = reg_norm * (H.sum() + W.sum() + M.sum())
-	var Obj = tr1 + tr2 + tr3 + tr4
-
-	return Obj
-}
-
-function maxMatlab(matrix, escalar) {
-	var temp = matrix.tolist()
-	for (var i = 0; i < temp.length; i++) {
-		for (var j = 0; j < temp[0].length; j++) {
-			if (escalar > temp[i][j])
-				temp[i][j] = escalar
-		}
-	}
-
-	return nj.array(temp)
-}
-
-/*
-	Funcion tr, recibe 2 matrices de la misma longitud y devuelve la otra con la multiplicacion
-	de sus terminos
-*/
-function tr(A, B) {
-	var mult = A.multiply(B)
-	return mult.sum()
 }
 
 
