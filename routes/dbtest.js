@@ -28,30 +28,26 @@ Corpus.find({fecha: {$lt: start}}).exec((error, arr_corpus)=>{
 		console.time(`Corpus ${corpus._id}`)
 
 		getX(corpus)
-			.then((data)=> { 
+			.then(function(data) { 
 				console.timeEnd(`Corpus ${corpus._id}`)
 				corpus_cache.push(data)
 				next() 
 			})
-			.catch((e)=> { error(e) })
+			.catch(e => error(e))
 
 	}).then(()=> {
 		console.log("Se termino de procesar los corpus")
 
-	}).catch((error)=> {
-		console.log("Error procesamiento corpus", error)
-	})
+	}).catch(error => console.log("Error procesamiento corpus", error) )
 })
 
 //Lista de corpus
 router.get("/corpus", function (req, res, next){
 
-	Corpus.find({}, "fecha palabras").exec(function(err, docs){
-		if (err)
-			return next(error)
+	Corpus.find({}, "fecha palabras").exec()
+		.then(docs => res.json(docs))
+		.catch(error => next(error))
 
-		return res.json(docs)
-	})
 })
 
 
@@ -71,7 +67,7 @@ router.get("/corpus/:id/documentos", function (req, res, next){
 //Se obtiene la matriz X del corpus seleccionado
 router.get("/corpus/:id/matrix", function (req, res, next) {
 
-	var data = corpus_cache.find((corpus)=> { return corpus._id.toString()===req.params.id.toString() })
+	var data = corpus_cache.find(corpus => corpus._id.toString()===req.params.id.toString())
 
 	if (data)
 		return res.json(data)
@@ -84,7 +80,7 @@ router.get("/corpus/:id/matrix", function (req, res, next) {
 //Se obtiene el JPP resultante del corpus seleccionado
 router.get("/corpus/:id/jpp", function (req, res, next) {
 
-	var data = corpus_cache.find((corpus)=> { return corpus._id.toString()===req.params.id.toString() })
+	var data = corpus_cache.find(corpus => corpus._id.toString()===req.params.id.toString())
 
 	if (!data)
 		return res.send("Información aun en procesamiento, espere")

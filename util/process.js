@@ -24,8 +24,6 @@ module.exports = {
 	Funcion que procesa un tweet y lo devuelve limpio
 */
 function processTweet(tweet) {
-	//var clean_tweet = cleaner(tweet.text)
-
 	return {
 		id : tweet.id,
 		tweet : tweet.text,
@@ -118,25 +116,19 @@ function dbTweet (dirname, tweet){
 */
 function cleaner(string) {
 
-	if (!string)
-		throw new Error("No existe el string")
+	if (!string || string.length<=3)
+		return []
 
 	try {
-
 		string = string.toLowerCase(); //todo a minusculas
 		string = string.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '') //Se elimina URLs
+		string = string.replace(/\B@[a-z0-9_-]+/gi, "") //Se elimina las menciones, no solo el @, todo
 		string = quitarAcentos(string)
-		array = string.match(/\b(\w+)\b/g) //Se convierte string a array de palabras
+		var array = string.match(/\b(\w+)\b/g) //Se convierte string a array de palabras
+		array = array.filter(word => word.length>2 && word.length<=21 && stopwords.indexOf(word)<0)
+		array = array.filter(word => !word.includes("jaja"))
 
-		for (word of stopwords) { //Se elimina stopwords
-			var i = array.length
-			while (i--) {
-			    if (array[i] == word)
-			    	array.splice(i, 1)
-			}
-		}
-
-		array = snowball.stemword(array, 'spanish') //Se realiza el stemming
+		//array = snowball.stemword(array, 'spanish') //Se realiza el stemming
 		return array
 
 	} catch (error) {
@@ -352,11 +344,7 @@ function quitarAcentos(cadena){
         }
     }
 
-    function removeDiacritics (str) {
-        return str.replace(/[^\u0000-\u007E]/g, function(a){ 
-			return diacriticsMap[a] || a; 
-        })
-    }    
+    var removeDiacritics = str => str.replace(/[^\u0000-\u007E]/g, a => diacriticsMap[a] || a)
 	
 	return removeDiacritics(cadena)
  }

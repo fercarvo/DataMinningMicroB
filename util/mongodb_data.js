@@ -39,15 +39,9 @@ function getDocuments(corpus) {
 			}).then(function () {
 				return resolve(data)
 
-			}).catch(function (error){
-				return reject(error)
+			}).catch(error => reject(error) )
 
-			})
-
-		}).catch(function (error){
-			return reject(error)
-
-		})
+		}).catch(error => reject(error))
 	})
 }
 
@@ -71,10 +65,7 @@ function getTweets(doc) {
 			return resolve(data)
 
 		})
-		.catch(function (error) {
-			return reject(error)
-
-		})
+		.catch(error => reject(error))
 	})
 }
 
@@ -102,14 +93,9 @@ function getX(corpus_data) {
 						return resolve(corpus.toObject())
 
 					})
-					.catch((error)=> {
-						return reject(error) //Error al procesar la matriz X
-					})
+					.catch(error => reject(error)) //Error al procesar la matriz X
 
-			}).catch((error)=> {
-				reject(error) //Error al obtener los docs de la BD
-			})
-
+			}).catch(error => reject(error))  //Error al obtener los docs de la BD
 		})
 	})
 }
@@ -125,9 +111,7 @@ function getJPP(x, r, k, alpha, lambda, epsilon, maxiter) {
 
 				return resolve(data)
 			})
-			.catch(function (error){
-				return reject(error)
-			})
+			.catch(error => reject(error))
 	})
 }
 

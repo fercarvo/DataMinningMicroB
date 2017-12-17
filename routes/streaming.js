@@ -63,8 +63,8 @@ function streamTweets() {
 		if (tweet.retweeted_status) //SI es un retweet, se rechaza todo
 			return
 
-		var pt = processTweet(tweet)
-		
+		var pt = processTweet(tweet, )
+
 		if (docID() === documento.identificador && isToday(corpus.fecha)) { //Si el corpus es de hoy y el doc es correcto
 
 			saveTweet(pt, documento).then(function (tweet) {
@@ -173,18 +173,13 @@ function getDocument(corpus) {
 				if (doc)
 					return resolve(doc)
 
-
 				new Document({
 					_corpus: corpus._id,
 					identificador: id
-				}).save()
-				.then(function (documento) {
-					return resolve(documento)
-
-				}).catch(function (error) {
-					return reject(error)
 				})
-				
+				.save()
+				.then(documento => resolve(documento))
+				.catch(error => reject(error))				
 			})
 	})
 }

@@ -64,9 +64,7 @@
     }])
     .controller('grafico1', ["$scope", "$state", "$http", function ($scope, $state, $http) {
 
-        setTimeout(function(){
-            alert("Por favor, espere mientras se procesa la informacion")
-        }, 1)
+        setTimeout(()=> alert("Por favor, espere mientras se procesa la informacion"), 1500)
         $http.get('/corpus/5a321913cef11e36e621764d/jpp').then( function (res){
 
             var matrix_M = res.data.JPP.M
@@ -94,7 +92,7 @@
                 }
 
                 for (topico of topicos) {
-                    topico.maximos = topico.maximos.map((indice)=> {return data.palabras[indice]}).sort()
+                    topico.maximos = topico.maximos.map(indice => data.palabras[indice]).sort()
                 }
 
                 return topicos
