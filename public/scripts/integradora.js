@@ -65,10 +65,9 @@
     .controller('grafico1', ["$scope", "$state", "$http", function ($scope, $state, $http) {
 
         setTimeout(()=> alert("Por favor, espere mientras se procesa la informacion"), 1500)
-        $http.get('/corpus/5a321913cef11e36e621764d/jpp').then( function (res){
+        $http.get('/corpus/5a35b380dccff353f28c7c03/jpp').then( function (res){
 
             var matrix_M = res.data.JPP.M
-
 
             genericWorker({palabras: res.data.palabras_corpus, H: res.data.JPP.H}, window, [function(data){
                 function findIndicesOfMax(inp, count) {

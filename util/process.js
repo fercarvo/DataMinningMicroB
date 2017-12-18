@@ -53,7 +53,6 @@ function eachSeries(array, fn) {
 		fn(array[index], next, error)
 
 		function next(data) {
-
 			resolved_data.push( data )
 
 			if (++index < array.length)
@@ -73,28 +72,21 @@ function eachSeries(array, fn) {
 function eachParallel(array, fn) {
 	return new Promise(function (resolveGlobal, rejectGlobal) {
 
-		var promises = []
+		var resolved_data = []
+		var resolved = 0
 
-		for (obj of array ) {
+		for (obj of array )
 			fn(obj, resolveObj, error)
-		}
 
 		function resolveObj(data) {
-			promises.push( Promise.resolve(data) )
+			resolved_data.push( data )
 
-			if (promises.length == array.length) {
-				Promise.all(promises).then(function (data) {
-					resolveGlobal(data)
-				}).catch(function (error) {
-					rejectGlobal(error)
-				})
-			}
-
+			if (++resolved >= array.length)
+				return resolveGlobal(resolved_data)
 		}
 
 		function error(error) {
-			promises.push( Promise.reject(error) )
-			rejectGlobal(promises)
+			return rejectGlobal(error)
 		}	
 
 	})

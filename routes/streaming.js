@@ -22,10 +22,7 @@ var client = new Twitter({
 	}
 )
 
-//var app = require('http').createServer()
 var io = require('socket.io')( require('http').createServer().listen(3001) )
-
-//app.listen(3001)
 
 var stream = null //Streaming de tweets
 
@@ -39,7 +36,7 @@ getCorpus().then(function (corpus_actual){
 		documento = doc_actual
 
 
-		stream = streamTweets()
+		//stream = streamTweets()
 
 
 	}).catch(printError)

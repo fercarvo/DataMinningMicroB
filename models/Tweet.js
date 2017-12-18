@@ -4,7 +4,8 @@ var Schema = mongoose.Schema
 var Tweet = new Schema({
     _document:  { 
         type: Schema.ObjectId, 
-        ref: 'Document'         
+        ref: 'Document',
+        required: true         
     },
     tweet: String,
     id: Number,
