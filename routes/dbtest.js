@@ -19,6 +19,7 @@ Corpus.find({fecha: {$lt: start}}).exec()
 	.then((arrCorpus)=> {
 
 		console.log("\nCorpuses a procesar", arrCorpus.length)
+		console.time("procesamiento de X's")
 
 		eachParallel(arrCorpus, function(corpus, next, error){
 
@@ -33,10 +34,11 @@ Corpus.find({fecha: {$lt: start}}).exec()
 				.catch(e => error(e))
 
 		})
-		.then(() => { console.log("Se termino de procesar los corpus") })
+		.then(() => { console.timeEnd("procesamiento de X's") })
 		.catch(e => console.log("Error procesamiento corpus", e) )
 
 	}).catch(e => console.log("Error BD corpus", e))
+
 
 
 

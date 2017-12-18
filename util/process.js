@@ -118,7 +118,7 @@ function cleaner(string) {
 		string = quitarAcentos(string)
 		var array = string.match(/\b(\w+)\b/g) //Se convierte string a array de palabras
 		array = array.filter(word => word.length>2 && word.length<=21 && stopwords.indexOf(word)<0)
-		array = array.filter(word => !word.includes("jaja"))
+		array = array.filter(word => !word.includes("jaja") && isNaN(word))
 
 		//array = snowball.stemword(array, 'spanish') //Se realiza el stemming
 		return array
