@@ -2,8 +2,11 @@ var router = require('express').Router()
 var nj = require('numjs')
 var mongoose = require("mongoose")
 var moment = require("moment")
+var cores = require('os').cpus().length
 
-const { getX, getJPP } = require("../util/mongodb_data.js")
+console.log("cores", cores)
+
+const { getX, getJPP, getAllCorpus, getXprocess } = require("../util/mongodb_data.js")
 const { eachSeries, eachParallel } = require('../util/process.js')
 
 var Tweet = require('../models/Tweet.js')
@@ -18,10 +21,10 @@ var start = moment.utc().startOf('day').toDate() //Inicio del dia
 Corpus.find({fecha: {$lt: start}}).exec()
 	.then((arrCorpus)=> {
 
-		console.log("\nCorpuses a procesar", arrCorpus.length)
+		console.log("\nCorpus's a procesar", arrCorpus.length)
 		console.time("procesamiento de X's")
 
-		eachParallel(arrCorpus, function(corpus, next, error){
+		eachSeries(arrCorpus, function(corpus, next, error){
 
 			console.time(`Corpus ${corpus._id}`)
 
@@ -33,13 +36,11 @@ Corpus.find({fecha: {$lt: start}}).exec()
 				})
 				.catch(e => error(e))
 
-		})
+		}, null)
 		.then(() => { console.timeEnd("procesamiento de X's") })
 		.catch(e => console.log("Error procesamiento corpus", e) )
 
 	}).catch(e => console.log("Error BD corpus", e))
-
-
 
 
 //Se obtienen todos los corpus recopilados
@@ -71,7 +72,7 @@ router.get("/corpus/:id/matrix", function (req, res, next) {
 	if (data)
 		return res.json(data)
 
-	return res.send("Información aun en procesamiento, espere")
+	return next(new Error("Información aun en procesamiento, espere"))
 })
 
 
@@ -82,7 +83,7 @@ router.get("/corpus/:id/jpp", function (req, res, next) {
 	var data = corpus_cache.find(corpus => corpus._id.toString()===req.params.id.toString())
 
 	if (!data)
-		return res.send("Información aun en procesamiento, espere")
+		return next(new Error("Información aun en procesamiento, espere"))
 
 	if (data.palabras.length <= 0 || data.X.length <= 0)
 		return next(new Error("No se ha calculado aun los datos de este corpus"))

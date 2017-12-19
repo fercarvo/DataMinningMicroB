@@ -65,7 +65,7 @@
     .controller('grafico1', ["$scope", "$state", "$http", function ($scope, $state, $http) {
 
         setTimeout(()=> alert("Por favor, espere mientras se procesa la informacion"), 1500)
-        $http.get('/corpus/5a35b380dccff353f28c7c03/jpp').then( function (res){
+        $http.get('/corpus/5a33108020e7d83f2cb2ef75/jpp').then( function (res){
 
             var matrix_M = res.data.JPP.M
 

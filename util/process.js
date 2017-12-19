@@ -44,63 +44,112 @@ function isToday (date) {
 }
 
 //Ejecuta en serie todas las operaciones
-function eachSeries(array, fn) {
+function eachSeries(array, fn, concurrency) {
 	return new Promise(function (resolve, reject) {
 
-		var resolved_data = []
-		var index = 0
+		if (concurrency>1) {
 
-		fn(array[index], next, error)
+			var slices = []
+			var i = 0
 
-		function next(data) {
-			resolved_data.push( data )
+			var hilos = new Array(concurrency).fill([]) //numero de hilos
 
-			if (++index < array.length)
-				fn(array[index], next, error)
-			else
-				resolve(resolved_data)
+			while (array.length>0) {
+				hilos[i%concurrency] = [...hilos[i%concurrency], array.shift()]
+				i++
+			}
+
+			console.log("Hilos en paralelo", hilos.length)
+
+			eachParallel(hilos, function (slice, next, error) {
+
+				console.log(`Lote de ${slice.length} elementos en serie`)
+				
+				eachSeries(slice, fn, null)
+					.then(data => next(data) )
+					.catch(e => error(e) )
+			
+
+			}, null)
+			.then(data => resolve(data) )
+			.catch(e => reject(e) )
+
+		} else {
+
+			var resolved_data = []
+			var index = 0
+
+			fn(array[index], next, error)
+
+			function next(data) {
+				resolved_data.push( data )
+
+				if (++index < array.length)
+					fn(array[index], next, error)
+				else
+					resolve(resolved_data)
+			}
+
+			function error(error) {
+				return reject(error)
+			}
 		}
-
-		function error(error) {
-			return reject(error)
-		}
-
 	})
 }
 
 //Ejecuta en paralelo todas las operaciones
-function eachParallel(array, fn) {
+// fn (obj, next, error)
+
+function eachParallel(array, fn, concurrency) {
 	return new Promise(function (resolveGlobal, rejectGlobal) {
 
-		var resolved_data = []
-		var resolved = 0
+		if (concurrency>1) {
 
-		for (obj of array )
-			fn(obj, resolveObj, error)
+			var slices = []
+			var array_length = array.length
+			var i = 0
 
-		function resolveObj(data) {
-			resolved_data.push( data )
+			while (i <= array_length) {
+				slices = [...slices, array.slice(i, i+concurrency)]
+				i += concurrency
+			}
 
-			if (++resolved >= array.length)
-				return resolveGlobal(resolved_data)
+			console.log("slices.length", slices.length)
+
+			eachSeries(slices, (slice, next, error)=>{
+
+				console.log(`Lote de ${slice.length} elementos en paralelo`)
+				
+				eachParallel(slice, fn, null)
+					.then(data => next(data) )
+					.catch(e => error(e) )
+			
+
+			})
+			.then(data => resolveGlobal(data) )
+			.catch(e => rejectGlobal(e) )
+
+		} else {
+
+			var resolved_data = []
+			var resolved = 0
+
+			for (obj of array )
+				fn(obj, resolveObj, error)
+
+			function resolveObj(data) {
+				resolved_data.push( data )
+
+				if (++resolved >= array.length)
+					return resolveGlobal(resolved_data)
+			}
+
+			function error(error) {
+				return rejectGlobal(error)
+			}
 		}
-
-		function error(error) {
-			return rejectGlobal(error)
-		}	
-
 	})
 }
-
-//Sin uso
-/*
-function dbTweet (dirname, tweet){
-	var tweets = JSON.parse( fs.readFileSync(dirname, 'utf8') )
-	tweets.push(tweet)
-
-	fs.writeFileSync( dirname, JSON.stringify(tweets), "utf8")
-}
-*/
 
 
 /*
@@ -121,47 +170,17 @@ function cleaner(string) {
 		array = array.filter(word => !word.includes("jaja") && isNaN(word))
 
 		//array = snowball.stemword(array, 'spanish') //Se realiza el stemming
-		return array
+		if (array instanceof Array)
+			return array
+		return []
 
 	} catch (error) {
 		return []
 	}	
 }
 
-//Sin uso
-/*
-function storageTweets (path, new_tweets) {
-	var DB_tweets
 
-	fs.readFile(path, 'utf8', function(error, data_string){
-		if (error) {
-			console.log("Error al leer tweets de la BD", error)
-		} else {
-			DB_tweets = JSON.parse(data_string)
-
-			for (DB_tweet of DB_tweets) {
-				var i = new_tweets.length
-				while (i--) {
-				    if (new_tweets[i].id == DB_tweet.id)
-				    	new_tweets.splice(i, 1)
-				}
-			}
-
-			var new_DB = DB_tweets.concat(new_tweets)
-
-			fs.writeFile('DB/storage.json', JSON.stringify(new_DB), 'utf8', function (error){
-				if (error)
-					return console.log("No se ha podido guardar los tweet", error)
-
-				console.log("Se guardo en la BD")
-			})
-
-		}
-	})
-}*/
-
-/*
-	Función que ejecuta un proceso con la sintaxis de promises
+/*	Función que ejecuta un proceso con la sintaxis de promises
 */
 function processPromise (path, data) {
 	return new Promise(function(resolve, reject){
@@ -294,8 +313,8 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 
 // quitar acentos
 
-function quitarAcentos(cadena){
-	var defaultDiacriticsRemovalMap = [
+function quitarAcentos(cadena) {
+	var removalMap = [
         {base:'A', letters:'\u0041\u24B6\uFF21\u00C0\u00C1\u00C2\u1EA6\u1EA4\u1EAA\u1EA8\u00C3\u0100\u0102\u1EB0\u1EAE\u1EB4\u1EB2\u0226\u01E0\u00C4\u01DE\u1EA2\u00C5\u01FA\u01CD\u0200\u0202\u1EA0\u1EAC\u1EB6\u1E00\u0104\u023A\u2C6F'},
         {base:'AA',letters:'\uA732'},
         {base:'AE',letters:'\u00C6\u01FC\u01E2'},
@@ -326,20 +345,16 @@ function quitarAcentos(cadena){
         {base:'oo',letters:'\uA74F'},
         {base:'oe',letters:'\u009C\u0153'},
         {base:'u',letters: '\u0075\u24E4\uFF55\u00F9\u00FA\u00FB\u0169\u1E79\u016B\u1E7B\u016D\u00FC\u01DC\u01D8\u01D6\u01DA\u1EE7\u016F\u0171\u01D4\u0215\u0217\u01B0\u1EEB\u1EE9\u1EEF\u1EED\u1EF1\u1EE5\u1E73\u0173\u1E77\u1E75\u0289'}
-    ];
+    ]
 
-    var diacriticsMap = {};
-    for (var i=0; i < defaultDiacriticsRemovalMap .length; i++){
-        var letters = defaultDiacriticsRemovalMap [i].letters;
-        for (var j=0; j < letters.length ; j++){
-            diacriticsMap[letters[j]] = defaultDiacriticsRemovalMap [i].base;
-        }
-    }
+    var map = new Map()
 
-    var removeDiacritics = str => str.replace(/[^\u0000-\u007E]/g, a => diacriticsMap[a] || a)
-	
-	return removeDiacritics(cadena)
- }
+    for (obj of removalMap)
+    	for (letter of obj.letters)
+    		map.set(letter, obj.base)
+
+    return cadena.replace(/[^\u0000-\u007E]/g, a => map.get(a) || a)
+}
 
 //Verifica que una matriz no tenga valores diferentes de numeros
 function cleanM(matrix) {

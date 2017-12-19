@@ -36,7 +36,7 @@ getCorpus().then(function (corpus_actual){
 		documento = doc_actual
 
 
-		//stream = streamTweets()
+		stream = streamTweets()
 
 
 	}).catch(printError)

@@ -5,7 +5,7 @@ var Document = require('../models/Document.js')
 var moment = require('moment')
 const { eachSeries, eachParallel, processPromise, cleanM, isToday } = require('../util/process.js')
 
-module.exports = { getDocuments, getX, getJPP }
+module.exports = { getDocuments, getX, getJPP, getXprocess, getAllCorpus }
 
 /*	fn_name getDccuments
 
@@ -75,6 +75,49 @@ function getX(idCorpus) {
 	})
 }
 
+
+/*	Retorna Promise.Resolve(lista_corpus) 
+ 	[{ _id: idcorpus,
+ 		fecha: Date,
+		documentos: [
+			{
+				identificador: 23,
+				tweets : [
+					tweet: "string data"
+				]
+			},...
+		]
+	},...]
+*/
+function getAllCorpus () {
+	return new Promise(function (resolve, reject){
+		
+		var start = moment.utc().startOf('day').toDate() //Inicio del dia
+
+		Corpus.find({fecha: {$lt: start}}, "fecha").exec()
+			.then((arrCorpus)=> { 
+
+				arrCorpus = arrCorpus.map(d => d.toObject())
+
+				eachParallel(arrCorpus, (corpus, next, error)=> {
+
+					getDocuments(corpus._id)
+						.then(docs => {
+							corpus.documentos = docs
+							next()
+						})
+						.catch(e => error(e))
+				})
+				.then((res) => resolve(arrCorpus))	
+				.catch(e => reject(e))
+
+			}).catch(error => reject(error))
+	})
+}
+
+
+
+
 function getJPP(x, r, k, alpha, lambda, epsilon, maxiter) {
 	return new Promise(function (resolve, reject) {
 
@@ -87,5 +130,30 @@ function getJPP(x, r, k, alpha, lambda, epsilon, maxiter) {
 				return resolve(data)
 			})
 			.catch(error => reject(error))
+	})
+}
+
+
+
+
+
+
+
+
+
+function getXprocess(corpus) {
+	return new Promise(function (resolve, reject){
+
+		processPromise(`${__dirname}/cp_x_matrix.js`, corpus.documentos)
+			.then((data)=> {
+
+				corpus.X = cleanM(data.X)
+				corpus.palabras = data.palabras
+				corpus.documentos = corpus.documentos.length
+
+				return resolve(corpus)
+
+			})
+			.catch(error => reject(error)) //Error al procesar la matriz X
 	})
 }
