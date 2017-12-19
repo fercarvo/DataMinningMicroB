@@ -15,13 +15,13 @@ var corpus_cache = [] //Se calculan al inicio los corpus con su matriz X y palab
 var start = moment.utc().startOf('day').toDate() //Inicio del dia
 
 //Al iniciar el servidor se obtienen y calculan todas las matrices X de cada corpus
-Corpus.find({fecha: {$lt: start}}).exec()
+/*Corpus.find({fecha: {$lt: start}}).exec()
 	.then((arrCorpus)=> {
 
 		console.log("\nCorpuses a procesar", arrCorpus.length)
 		console.time("procesamiento de X's")
 
-		eachParallel(arrCorpus, function(corpus, next, error){
+		eachSeries(arrCorpus, function(corpus, next, error){
 
 			console.time(`Corpus ${corpus._id}`)
 
@@ -37,7 +37,14 @@ Corpus.find({fecha: {$lt: start}}).exec()
 		.then(() => { console.timeEnd("procesamiento de X's") })
 		.catch(e => console.log("Error procesamiento corpus", e) )
 
-	}).catch(e => console.log("Error BD corpus", e))
+	}).catch(e => console.log("Error BD corpus", e))*/
+
+getX("5a33108020e7d83f2cb2ef75")
+	.then(function(data) {
+		console.log("Termino corpus") 
+		corpus_cache.push(data)
+	})
+	.catch(e => console.log(e))
 
 
 
@@ -79,6 +86,8 @@ router.get("/corpus/:id/matrix", function (req, res, next) {
 //Se obtiene el JPP resultante del corpus seleccionado
 router.get("/corpus/:id/jpp", function (req, res, next) {
 
+	res.set('Cache-Control', 'public, max-age=60')
+
 	var data = corpus_cache.find(corpus => corpus._id.toString()===req.params.id.toString())
 
 	if (!data)
@@ -87,7 +96,7 @@ router.get("/corpus/:id/jpp", function (req, res, next) {
 	if (data.palabras.length <= 0 || data.X.length <= 0)
 		return next(new Error("No se ha calculado aun los datos de este corpus"))
 
-	var k = 6
+	var k = 4
     var x = nj.array(data.X)
     //x = nj.random([x.shape[0], x.shape[1]]) 
     var r = nj.random([k, x.shape[1]])
