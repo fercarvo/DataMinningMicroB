@@ -177,7 +177,7 @@ function cleaner(string) {
 	    return true 	
 	}
 
-	if (!string || string.length<=5)
+	if (!string || string.length<=10)
 		return []
 
 	try {
@@ -189,6 +189,7 @@ function cleaner(string) {
 		array = array.filter(word => filterCheck(word))
 
 		//array = snowball.stemword(array, 'spanish') //Se realiza el stemming
+		
 		if (array instanceof Array)
 			return array
 		return []

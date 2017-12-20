@@ -14,7 +14,7 @@ const Document = require('../models/Document.js')
 var corpus_cache = [] //Se calculan al inicio los corpus con su matriz X y palabras
 
 router.use((req, res, next)=> {
-	res.set('Cache-Control', 'public, max-age=120')
+	res.set('Cache-Control', `public, max-age=${60*5}`)
 	next()
 })
 

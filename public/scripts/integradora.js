@@ -17,10 +17,6 @@
                 templateUrl: "views/grafico2.html",
                 controller: "grafico2"
             })
-        //False en modo de produccion
-        /*$compileProvider.debugInfoEnabled(false)
-        $compileProvider.commentDirectivesEnabled(false)
-        $compileProvider.cssClassDirectivesEnabled(false)*/
         
     }])
     .run(["$state", "$http", "$templateCache", function ($state, $http, $templateCache) {
@@ -50,7 +46,7 @@
 
         setTimeout(()=> alert("Por favor, espere mientras se procesa la informacion"), 1500)
 
-        $http.get('/corpus/5a33108020e7d83f2cb2ef75/jpp/3').then( function (res){
+        $http.get('/corpus/5a3856814148e2658a95f9ed/jpp/4').then( function (res){
 
             var matrix_M = res.data.JPP.M
 
@@ -71,7 +67,7 @@
                 var h = data.H
 
                 for (var i = 0; i <h.length; i++)
-                    topicos.push({indice: i+1, maximos: findIndicesOfMax(h[i], 8)})
+                    topicos.push({indice: i+1, maximos: findIndicesOfMax(h[i], 7)})
                 
                 for (topico of topicos)
                     topico.maximos = topico.maximos.map(indice => data.palabras[indice]).sort()
