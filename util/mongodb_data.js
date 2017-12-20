@@ -1,11 +1,11 @@
-var mongoose = require("mongoose")
-var Tweet = require('../models/Tweet.js')
-var Corpus = require('../models/Corpus.js')
-var Document = require('../models/Document.js')
-var moment = require('moment')
+const mongoose = require("mongoose")
+const Tweet = require('../models/Tweet.js')
+const Corpus = require('../models/Corpus.js')
+const Document = require('../models/Document.js')
+const moment = require('moment')
 const { eachSeries, eachParallel, processPromise, cleanM, isToday } = require('../util/process.js')
 
-module.exports = { getDocuments, getX, getJPP, getXprocess, getAllCorpus }
+module.exports = { getDocuments, getJPP, getXprocess, getAllCorpus }
 
 /*	fn_name getDccuments
 
@@ -48,7 +48,7 @@ function getDocuments(corpus_id) {
 		on resolve({_id, X, palabras}) Object corpus, con la matriz X [[tfidf]] y Array de palabras [string]
 		on reject(error) el error que causo la falla 
 */
-function getX(idCorpus) {
+/*function getX(idCorpus) {
 	return new Promise(function (resolve, reject){
 
 		Corpus.findOne({_id: idCorpus}).exec()
@@ -73,7 +73,7 @@ function getX(idCorpus) {
 
 			}).catch(e => reject(e)) //Error DB
 	})
-}
+}*/
 
 
 /*	Retorna Promise.Resolve(lista_corpus) 
@@ -117,7 +117,8 @@ function getAllCorpus () {
 
 
 
-
+/*	Recibe los datos para el JPP y devuelve {W, H, M}
+*/
 function getJPP(x, r, k, alpha, lambda, epsilon, maxiter) {
 	return new Promise(function (resolve, reject) {
 
@@ -134,13 +135,9 @@ function getJPP(x, r, k, alpha, lambda, epsilon, maxiter) {
 }
 
 
-
-
-
-
-
-
-
+/*	Recibe un corpus sin procesar y retorna un
+	Promise.resolve( {X: [[],...], palabras_corpus: [string,...]} )
+*/
 function getXprocess(corpus) {
 	return new Promise(function (resolve, reject){
 

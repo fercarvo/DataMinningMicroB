@@ -60,7 +60,7 @@ function streamTweets() {
 		if (tweet.retweeted_status) //SI es un retweet, se rechaza todo
 			return
 
-		var pt = processTweet(tweet, )
+		var pt = processTweet(tweet)
 
 		if (docID() === documento.identificador && isToday(corpus.fecha)) { //Si el corpus es de hoy y el doc es correcto
 

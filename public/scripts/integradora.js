@@ -30,7 +30,6 @@
 
         var socket = io.connect('http://localhost:3001', {'forceNew':true })
 
-        //var socket = io('http://localhost:3001')
         $scope.tweets = []
 
         socket.on('tweet', function (tweet) {
@@ -42,30 +41,16 @@
             $scope.$apply()
         })
 
-        $scope.$on('$destroy', function(){
-            socket.close()
-        })
+        $scope.$on('$destroy', ()=>  socket.close())
 
-        /*var not_blocking = genericWorker(window, ["blockCpu", "blockCpu", function (block){
-            console.log("Starting blokcing...")
-            block(7000)
-            return "this return will be catched by the promise resolve"
-        }])
-
-        not_blocking
-            .then(function (result){
-                console.log("result", result)
-            })
-            .catch(function(error) { 
-                console.log(error) 
-            })*/
 
 
     }])
     .controller('grafico1', ["$scope", "$state", "$http", function ($scope, $state, $http) {
 
         setTimeout(()=> alert("Por favor, espere mientras se procesa la informacion"), 1500)
-        $http.get('/corpus/5a33108020e7d83f2cb2ef75/jpp').then( function (res){
+
+        $http.get('/corpus/5a33108020e7d83f2cb2ef75/jpp/3').then( function (res){
 
             var matrix_M = res.data.JPP.M
 
@@ -85,31 +70,23 @@
                 var topicos = []
                 var h = data.H
 
-                for (var i = 0; i <h.length; i++) {
-                    //cada h[i] es un topico
-                    topicos.push({indice: i+1, maximos: findIndicesOfMax(h[i], 15)})
-                }
-
-                for (topico of topicos) {
+                for (var i = 0; i <h.length; i++)
+                    topicos.push({indice: i+1, maximos: findIndicesOfMax(h[i], 8)})
+                
+                for (topico of topicos)
                     topico.maximos = topico.maximos.map(indice => data.palabras[indice]).sort()
-                }
 
                 return topicos
 
             }]).then(function(topicos) {
                 console.log("Los topicos y sus palabras son")
 
-                for (topico of topicos) {
+                for (topico of topicos)
                     console.log(`topico ${topico.indice}:`, topico.maximos)
-                }
 
-                alert("La información sobre los topicos se encuentra en la consola")
+                setTimeout(()=> alert("La información sobre los topicos se encuentra en la consola"), 1)                
 
-
-            }).catch(function() {
-                console.log("error worker")
-            })
-
+            }).catch((e)=> console.log("error worker"))
 
             var data_mapa = []
             for (var i = 0; i < matrix_M.length; i++) {     

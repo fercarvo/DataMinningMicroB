@@ -1,18 +1,18 @@
-var { stopwords } = require('../DB/stopwords.js')
-var snowball = require('node-snowball')
-var fs = require('fs')
+const { stopwords } = require('../DB/stopwords.js')
+const snowball = require('node-snowball')
+const fs = require('fs')
 const { fork } = require('child_process')
-var nj = require('numjs')
-var moment = require('moment')
+const nj = require('numjs')
+const moment = require('moment')
 
 
 module.exports = {
-	processTweet: processTweet,
-	cleaner: cleaner,
-	stopwords: stopwords,
-	processPromise: processPromise,
-	JPP: JPP,
-	quitarAcentos: quitarAcentos,
+	processTweet,
+	cleaner,
+	stopwords,
+	processPromise,
+	JPP,
+	quitarAcentos,
 	eachParallel, 
 	eachSeries,
 	cleanM,
@@ -52,7 +52,7 @@ function eachSeries(array, fn, concurrency) {
 			var slices = []
 			var i = 0
 
-			var hilos = new Array(concurrency).fill([]) //numero de hilos
+			var hilos = new Array(concurrency).fill([]) //numero de "hilos o concurrencias"
 
 			while (array.length>0) {
 				hilos[i%concurrency] = [...hilos[i%concurrency], array.shift()]
@@ -68,7 +68,6 @@ function eachSeries(array, fn, concurrency) {
 				eachSeries(slice, fn, null)
 					.then(data => next(data) )
 					.catch(e => error(e) )
-			
 
 			}, null)
 			.then(data => resolve(data) )
@@ -156,8 +155,29 @@ function eachParallel(array, fn, concurrency) {
 	Funcion que recibe un string y devuelve un array de palabras limpias
 */
 function cleaner(string) {
+	
+	//Verifica si una palabra tiene 3 o mas letras continuas repetidas
+	function filterCheck (word) {
+		if (word.length <=2 || word.length>=21) //Si es menor de dos letras o igual o mayor a 21
+			return false
 
-	if (!string || string.length<=3)
+		if (/\d/.test(word)) //Si la palabra tiene un numero
+			return false
+
+		if (word.includes("jaja") || word.includes("jeje") || word.includes("jiji")) //Si incluye estos strings
+			return false		
+
+		for (var i = 0; i < word.length; i++) //Verifica por caracters repetidos contnuos
+	        if (word[i]===word[i+1] && word[i+1]===word[i+2]) 
+	            return false
+
+		if (stopwords.indexOf(word) > -1) //Si la palabra esta dentro de stopwords
+			return false	    
+	    
+	    return true 	
+	}
+
+	if (!string || string.length<=5)
 		return []
 
 	try {
@@ -166,8 +186,7 @@ function cleaner(string) {
 		string = string.replace(/\B@[a-z0-9_-]+/gi, "") //Se elimina las menciones, no solo el @, todo
 		string = quitarAcentos(string)
 		var array = string.match(/\b(\w+)\b/g) //Se convierte string a array de palabras
-		array = array.filter(word => word.length>2 && word.length<=21 && stopwords.indexOf(word)<0)
-		array = array.filter(word => !word.includes("jaja") && isNaN(word))
+		array = array.filter(word => filterCheck(word))
 
 		//array = snowball.stemword(array, 'spanish') //Se realiza el stemming
 		if (array instanceof Array)

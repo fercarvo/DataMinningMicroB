@@ -8,7 +8,7 @@ process.on('message', function (documentos) {
 	var setPalabras = new Set() //Palabras sin repetir del corpus
 
 	for (doc of documentos) {
-
+		
 		let docWords = doc.tweets.reduce((words, t) => [...words, ...cleaner(t.tweet) ], []) //Todas las palabras del doc
 		
 		let map = docWords.reduce((map, w)=> { 
@@ -25,10 +25,13 @@ process.on('message', function (documentos) {
 		corpus = [...corpus, map]
 	}
 
+	setPalabras = [...setPalabras].sort()
+
 	setPalabras.forEach(palabra => X.push( tf_idf(corpus, palabra) ))
 
 	X = array(X).T.tolist()
 	process.send({X: X, palabras: [...setPalabras]})
+		
 })
 
 // corpus = [{word: frecuency}]
