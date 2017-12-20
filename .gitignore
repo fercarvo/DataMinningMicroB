@@ -4,3 +4,4 @@ config.js
 npm-debug.log
 package-lock.json
 routes/streaming.js
+/routes/streaming.js
