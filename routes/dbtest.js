@@ -26,6 +26,8 @@ getAllCorpus().then(arrCorpus => {
 	console.log("\nCorpus's a procesar", arrCorpus.length)
 	console.time("\nFin procesamiento de X's")
 
+	arrCorpus.sort(compareCorpus) //Orena del mas grande al mas pequeño
+
 	eachSeries(arrCorpus, function(corpus, next, error){
 
 		console.time(`Procesamiento de ${corpus._id} tardo`)
@@ -110,3 +112,19 @@ router.get("/corpus/:id/jpp/:k", function (req, res, next) {
 })
 
 module.exports = router;
+
+
+
+
+function compareCorpus (corpusA, corpusB) {
+	var a = corpusA.documentos.reduce((sum, doc)=> sum + doc.tweets.length, 0)
+	var b = corpusB.documentos.reduce((sum, doc)=> sum + doc.tweets.length, 0)
+	//Reverse sorting...
+	if (a < b)
+		return -1 //should be -1
+	
+	if (a > b)
+		return 1 //should be 1
+
+	return 0
+}

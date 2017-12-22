@@ -1,8 +1,8 @@
 /*
 	Esta sección se encarga de la recolección de tweets
 */
-
 var router = require('express').Router()
+/*
 var Twitter = require('twitter');
 var { tokens } = require('../config.js')
 var { topicos, users } = require('../DB/topicos.js')
@@ -41,6 +41,7 @@ getCorpus().then(function (corpus_actual){
 
 	}).catch(printError)
 }).catch(printError)
+*/
 
 
 function streamTweets() {
@@ -100,7 +101,7 @@ function streamTweets() {
 
 
 function docID () {
-	var date_id = new Date()
+	var date_id = moment.utc().toDate()
 	var secs = date_id.getUTCSeconds() + (60 * date_id.getUTCMinutes()) + (60 * 60 * date_id.getUTCHours());
 	return Math.floor(secs/1800)
 }
