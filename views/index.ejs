@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Visualización</title>
     
@@ -80,6 +77,7 @@
                     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                         <ul class="nav navbar-nav navbar-right">
                             <li ui-sref="home"><a href="#">Principal</a></li>
+                            <li ui-sref="dias"><a href="#">Corpus</a></li>
                             <li ui-sref="listener"><a href="#">Listener</a></li>
                             <li ui-sref="grafico1"><a href="#">Gráfico 1</a></li>
                             <li ui-sref="grafico2"><a href="#">Gráfico 2</a></li>
@@ -134,7 +132,14 @@
 <!-- jQuery Custom Scroller CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.concat.min.js"></script>
 
-<script type="text/javascript">
+<script>
+
+    document.body.style.pointerEvents = 'none'
+
+    fetch("https://www.google.com").then(res => res.ok ? res : res)
+        .then(res => console.log("bien", res))
+        .catch(res => console.log("mal", res))
+
     $(document).ready(function () {
         $("#sidebar").mCustomScrollbar({
             theme: "minimal"
@@ -174,14 +179,14 @@
                 return reject("context is undefined")
 
             callback = fn_string(callback) //Callback to be executed
-            functions = functions.map((fn_name)=> { return fn_string( cb_context[fn_name] ) })
+            functions = functions.map(fn_name=> fn_string( cb_context[fn_name] ) )
 
             var worker_file = window.URL.createObjectURL( new Blob(["self.addEventListener('message', function(e) { var bb = {}; var args = []; for (fn of e.data.functions) { bb[fn.name] = new Function(fn.args, fn.body); args.push(fn.name)}; var callback = new Function( e.data.callback.args, e.data.callback.body); args = args.map(function(fn_name) { return bb[fn_name] }); args.unshift(e.data.data);  var result = callback.apply(null, args) ;self.postMessage( result );}, false)"]) )
             var worker = new Worker(worker_file)
 
             worker.postMessage({ callback, functions, data })
 
-            worker.addEventListener('error', function(error){ return reject(error.message) })
+            worker.addEventListener('error', error=> reject(error.message) )
 
             worker.addEventListener('message', function(e) {
                 resolve(e.data), worker.terminate()
@@ -197,6 +202,25 @@
                 }
             }
         })
+    }
+
+
+    function loadTemplates($state, goState, $http, $templateCache) {
+
+        var promises = []
+        var states = $state.get()
+
+        for (i = 1; i < states.length; i++) {
+            var p = $http.get(states[i].templateUrl, { cache: $templateCache })
+            promises.push(p)
+            p.then(()=> {}, err=> console.log("Error template: ", err))
+        }
+
+        Promise.all(promises)
+            .then(()=> {}).catch(()=> {}).then(()=> {
+                $state.go(goState) ///////////////////////// State inicial                
+                document.body.style.pointerEvents = 'all'
+            })
     }
 
 

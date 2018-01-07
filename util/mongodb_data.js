@@ -141,12 +141,13 @@ function getJPP(x, r, k, alpha, lambda, epsilon, maxiter) {
 function getXprocess(corpus) {
 	return new Promise(function (resolve, reject){
 
-		processPromise(`${__dirname}/cp_x_matrix.js`, corpus.documentos)
+		processPromise(`${__dirname}/cp_corpus.js`, corpus.documentos)
 			.then((data)=> {
 
-				corpus.X = cleanM(data.X)
-				corpus.palabras = data.palabras
-				corpus.documentos = corpus.documentos.length
+				corpus.setPalabras = data.setPalabras
+				corpus.documentos = null
+				corpus.corpus = data.corpus
+
 
 				return resolve(corpus)
 
@@ -154,3 +155,7 @@ function getXprocess(corpus) {
 			.catch(error => reject(error)) //Error al procesar la matriz X
 	})
 }
+
+
+
+

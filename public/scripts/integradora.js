@@ -5,6 +5,10 @@
                 templateUrl: 'views/home.html',
                 controller: 'home'
             })
+            .state('dias', {
+                templateUrl: 'views/dias.html',
+                controller: 'dias'
+            })
             .state('grafico1', {
                 templateUrl: 'views/grafico.html',
                 controller: 'grafico1'
@@ -20,7 +24,21 @@
         
     }])
     .run(["$state", "$http", "$templateCache", function ($state, $http, $templateCache) {
-        $state.go("listener")
+
+        loadTemplates($state, "home", $http, $templateCache)
+
+    }])
+    .controller("home", [function () {
+
+    }])
+    .controller('dias', ["$scope", "$state", "$http", function($scope, $state, $http){
+
+        $http.get("/corpus")
+            .then(res => {$scope.data = res.data})
+            .catch(e=> console.log(e))
+
+
+
     }])
     .controller('listener', ["$scope", "$state", function($scope, $state){
 
@@ -46,54 +64,25 @@
 
         setTimeout(()=> alert("Por favor, espere mientras se procesa la informacion"), 1500)
 
-        $http.get('/corpus/5a3856814148e2658a95f9ed/jpp/4').then( function (res){
+        $http.get('/corpus/5a41910005020b5fb91d6cbe/5a42e2803e12a67103e96817/jpp/4').then( function (res){
 
-            var matrix_M = res.data.JPP.M
-
-            genericWorker({palabras: res.data.palabras_corpus, H: res.data.JPP.H}, window, [function(data){
-                function findIndicesOfMax(inp, count) {
-                    var outp = [];
-                    for (var i = 0; i < inp.length; i++) {
-                        outp.push(i); // add index to output array
-                        if (outp.length > count) {
-                            outp.sort((a, b) => inp[b] - inp[a]) // descending sort the output array
-                            outp.pop() // remove the last index (index of smallest element in output array)
-                        }
-                    }
-                    return outp;
-                }
-
-                var topicos = []
-                var h = data.H
-
-                for (var i = 0; i <h.length; i++)
-                    topicos.push({indice: i+1, maximos: findIndicesOfMax(h[i], 7)})
-                
-                for (topico of topicos)
-                    topico.maximos = topico.maximos.map(indice => data.palabras[indice]).sort()
-
-                return topicos
-
-            }]).then(function(topicos) {
-                console.log("Los topicos y sus palabras son")
-
-                for (topico of topicos)
-                    console.log(`topico ${topico.indice}:`, topico.maximos)
-
-                setTimeout(()=> alert("La información sobre los topicos se encuentra en la consola"), 1)                
-
-            }).catch((e)=> console.log("error worker"))
+            var M = res.data.M
+            var topicos_1 = res.data.topicos_1
+            var topicos_2 = res.data.topicos_2
 
             var data_mapa = []
-            for (var i = 0; i < matrix_M.length; i++) {     
-                for (var j = 0; j < matrix_M[i].length; j++) {
-                    data_mapa.push([i, j, matrix_M[i][j]])
+            for (var i = 0; i < M.length; i++) {     
+                for (var j = 0; j < M[i].length; j++) {
+                    data_mapa.push([i, j, M[i][j]])
                 }
             }
 
+            console.log(topicos_1)
+            console.log(topicos_2)
+
             var topicos = []
 
-            for (var i = 0; i < matrix_M.length; i++)
+            for (var i = 0; i < M.length; i++)
                 topicos.push(`topico ${i+1}`)
             
 
@@ -155,9 +144,6 @@
         }).catch(function (error) {
             console.log(error)
         })
-
-    }])
-    .controller("home", [function () {
 
     }])
     .controller('grafico2', ["$scope", function($scope){

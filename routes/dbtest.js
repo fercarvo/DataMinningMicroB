@@ -5,7 +5,7 @@ const moment = require("moment")
 const cores = require('os').cpus().length
 
 const { getJPP, getAllCorpus, getXprocess } = require("../util/mongodb_data.js")
-const { eachSeries, eachParallel } = require('../util/process.js')
+const { eachSeries, eachParallel, processPromise } = require('../util/process.js')
 
 const Tweet = require('../models/Tweet.js')
 const Corpus = require('../models/Corpus.js')
@@ -18,30 +18,27 @@ router.use((req, res, next)=> {
 	next()
 })
 
-console.time("\nPulling from DB")
 getAllCorpus().then(arrCorpus => {
 
-	console.timeEnd("\nPulling from DB")
-
 	console.log("\nCorpus's a procesar", arrCorpus.length)
-	console.time("\nFin procesamiento de X's")
-
-	arrCorpus.sort(compareCorpus) //Orena del mas grande al mas pequeño
 
 	eachSeries(arrCorpus, function(corpus, next, error){
 
-		console.time(`Procesamiento de ${corpus._id} tardo`)
-
 		getXprocess(corpus)
 			.then(corpus => {
-				console.timeEnd(`Procesamiento de ${corpus._id} tardo`)
 				corpus_cache = [...corpus_cache, corpus]
 				next()
 			})
 			.catch(e => error(e))
 
 	}, cores)
-		.then(() => { console.timeEnd("\nFin procesamiento de X's") })
+		.then(() => { 
+
+			for (corpus of corpus_cache){
+				console.log(corpus.setPalabras.slice(0, 5))
+			}
+
+		 })
 		.catch(e => console.log("Error procesamiento corpus", e))
 })
 
@@ -81,50 +78,24 @@ router.get("/corpus/:id/matrix", function (req, res, next) {
 
 
 //Se obtiene el JPP resultante del corpus seleccionado
-router.get("/corpus/:id/jpp/:k", function (req, res, next) {
+router.get("/corpus/:id1/:id2/jpp/:k", function (req, res, next) {
 
-	var data = corpus_cache.find(corpus => corpus._id.toString()===req.params.id.toString())
+	var data_1 = corpus_cache.find(corpus => corpus._id.toString()===req.params.id1.toString())
+	var data_2 = corpus_cache.find(corpus => corpus._id.toString()===req.params.id2.toString())
 
-	if (!data)
+	const k = parseInt(req.params.k) || 6
+
+
+	if (!data_1 || !data_2)
 		return next(new Error("Información aun en procesamiento, espere"))
 
-	if (data.palabras.length <= 0 || data.X.length <= 0)
-		return next(new Error("No se ha calculado aun los datos de este corpus"))
+	processPromise(`${__dirname}/../util/cp_jpp.js`, {data_1, data_2, k})
+		.then(resultado => {
 
-	var k = parseInt(req.params.k) || 6
-    var x = nj.array(data.X)
-    var r = nj.random([k, x.shape[1]])
-    var alpha = 10000000
-    var lambda = 0.05
-    var epsilon = 0.01
-    var maxiter = 100
-    //var verbose = false
+			return res.json(resultado)
 
-    x = x.tolist()
-    r = r.tolist()
-
-    getJPP(x, r, k, alpha, lambda, epsilon, maxiter)
-    	.then(function (result) {
-    		return res.json({JPP: result, palabras_corpus: data.palabras})
-
-    	})
-    	.catch(error => next(error))
+		})
+		.catch(error => next(error))    
 })
 
 module.exports = router;
-
-
-
-
-function compareCorpus (corpusA, corpusB) {
-	var a = corpusA.documentos.reduce((sum, doc)=> sum + doc.tweets.length, 0)
-	var b = corpusB.documentos.reduce((sum, doc)=> sum + doc.tweets.length, 0)
-	//Reverse sorting...
-	if (a < b)
-		return -1 //should be -1
-	
-	if (a > b)
-		return 1 //should be 1
-
-	return 0
-}

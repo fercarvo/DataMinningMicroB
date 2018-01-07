@@ -262,7 +262,10 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 	}
 
 	X = nj.array( cleanM(X) )
+	console.log("X", X, X.shape)
 	R = nj.array( cleanM(R) )
+	console.log("R", R, R.shape)
+
 
 	var n = X.shape[0] // # filas X
 	var v1 = X.shape[1] // # columnas X
