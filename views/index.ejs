@@ -102,8 +102,6 @@
 
     </div>
 
-
-
 <%- include scripts.ejs %>
        
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -133,12 +131,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.concat.min.js"></script>
 
 <script>
-
     document.body.style.pointerEvents = 'none'
-
-    fetch("https://www.google.com").then(res => res.ok ? res : res)
-        .then(res => console.log("bien", res))
-        .catch(res => console.log("mal", res))
 
     $(document).ready(function () {
         $("#sidebar").mCustomScrollbar({
@@ -222,6 +215,7 @@
                 document.body.style.pointerEvents = 'all'
             })
     }
+
 
 
 

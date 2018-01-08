@@ -11,11 +11,11 @@ process.on('message', function (documentos) {
 		
 		let docWords = doc.tweets.reduce((words, t) => [...words, ...cleaner(t.tweet) ], []) //Todas las palabras del doc
 		
-		for (w of docWords) {
-			if (map[w])
-				map[w]++
+		for (word of docWords) {
+			if (map[word])
+				map[word]++
 			else
-				map[w] = 1
+				map[word] = 1
 		}
 
 		for (key in map)
@@ -26,6 +26,5 @@ process.on('message', function (documentos) {
 
 	setPalabras = [...setPalabras]
 
-	process.send({setPalabras, corpus})
-		
+	process.send({setPalabras, corpus})		
 })

@@ -4,7 +4,7 @@ const fs = require('fs')
 const { fork } = require('child_process')
 const nj = require('numjs')
 const moment = require('moment')
-
+const Event = require('events');
 
 module.exports = {
 	processTweet,
@@ -16,7 +16,8 @@ module.exports = {
 	eachParallel, 
 	eachSeries,
 	cleanM,
-	isToday
+	isToday,
+	each
 }
 
 
@@ -47,6 +48,8 @@ function isToday (date) {
 function eachSeries(array, fn, concurrency) {
 	return new Promise(function (resolve, reject) {
 
+		var resolved_data = []
+
 		if (concurrency>1) {
 
 			var slices = []
@@ -66,16 +69,18 @@ function eachSeries(array, fn, concurrency) {
 				console.log(`Lote de ${slice.length} elementos en serie`)
 				
 				eachSeries(slice, fn, null)
-					.then(data => next(data) )
+					.then(data => {
+						resolved_data = [...resolved_data, ...data]
+						next()
+					})
 					.catch(e => error(e) )
 
 			}, null)
-			.then(data => resolve(data) )
+			.then(() => resolve(resolved_data) )
 			.catch(e => reject(e) )
 
 		} else {
 
-			var resolved_data = []
 			var index = 0
 
 			fn(array[index], next, error)
@@ -150,6 +155,43 @@ function eachParallel(array, fn, concurrency) {
 	})
 }
 
+//Concurrency == 1, seria
+//Concurrency == Infinity, paralelo
+function each(array, fn, concurrency) {
+	return new Promise((resolve, reject) => {
+
+		concurrency = (concurrency > 0) ? concurrency : 1
+		var used = 0
+		var size = array.length
+		var resolved_data = []
+
+		while (array.length > 0 && used < concurrency) {
+			fn(array.pop(), next, error), used++
+		}
+
+		function next(data) {
+			resolved_data.push( data )
+
+			used--
+
+			if (resolved_data.length == size)
+				return resolve(resolved_data)
+
+			if (used >= concurrency || array.length == 0)
+				return
+
+			used++ 
+			fn(array.pop(), next, error)
+		}
+
+		function error(error) {
+			used = Infinity
+			return reject(error)
+		}
+
+	})
+}
+
 
 /*
 	Funcion que recibe un string y devuelve un array de palabras limpias
@@ -188,7 +230,7 @@ function cleaner(string) {
 		var array = string.match(/\b(\w+)\b/g) //Se convierte string a array de palabras
 		array = array.filter(word => filterCheck(word))
 
-		//array = snowball.stemword(array, 'spanish') //Se realiza el stemming
+		array = snowball.stemword(array, 'spanish') //Se realiza el stemming
 		
 		if (array instanceof Array)
 			return array
@@ -262,10 +304,7 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 	}
 
 	X = nj.array( cleanM(X) )
-	console.log("X", X, X.shape)
 	R = nj.array( cleanM(R) )
-	console.log("R", R, R.shape)
-
 
 	var n = X.shape[0] // # filas X
 	var v1 = X.shape[1] // # columnas X

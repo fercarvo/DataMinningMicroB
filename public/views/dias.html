@@ -1,15 +1,22 @@
 <table class="table">
   <thead>
     <tr>
-      <th scope="col">Nombre</th>
+      <th scope="col">ID</th>
       <th scope="col">Fecha</th>
+      <th scope="col">Seleccionar</th>
     </tr>
   </thead>
 
   <tbody>
-    <tr ng-repeat="c in data">
-      <th>{{c._id}}</th>
-      <td>{{c.fecha}}</td>
+    <tr ng-repeat="c in data | orderBy : ['fecha']">
+      <th>corpus {{$index + 1}}</th>
+      <td>{{c.fecha | date: 'dd-MM-yyyy'}}</td>
+      <td><input form="despacharForm" ng-disabled="disable" ng-checked="c.check" type="checkbox" ng-click="calculo(c)"><br></td>
     </tr>
   </tbody>
 </table>
+
+  <form id="generar">
+    <button type="submit" class="btn btn-info">Generar</button>
+    <button type="button" ng-click="cancelar()" class="btn btn-info">Cancelar</button>
+  </form>

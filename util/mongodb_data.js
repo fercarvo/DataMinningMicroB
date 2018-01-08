@@ -3,9 +3,9 @@ const Tweet = require('../models/Tweet.js')
 const Corpus = require('../models/Corpus.js')
 const Document = require('../models/Document.js')
 const moment = require('moment')
-const { eachSeries, eachParallel, processPromise, cleanM, isToday } = require('../util/process.js')
+const { eachSeries, eachParallel, processPromise, cleanM, isToday, each } = require('../util/process.js')
 
-module.exports = { getDocuments, getJPP, getXprocess, getAllCorpus }
+module.exports = { getDocuments, getJPP, getXprocess, getCorpus }
 
 /*	fn_name getDccuments
 
@@ -38,42 +38,6 @@ function getDocuments(corpus_id) {
 			}).catch(e_db => reject(e_db))
 	})
 }
-
-
-/*	fn_name getX
-
-	@idCorpus string, id del corpus al obtener documentos con tweets
-
-	return Promise
-		on resolve({_id, X, palabras}) Object corpus, con la matriz X [[tfidf]] y Array de palabras [string]
-		on reject(error) el error que causo la falla 
-*/
-/*function getX(idCorpus) {
-	return new Promise(function (resolve, reject){
-
-		Corpus.findOne({_id: idCorpus}).exec()
-			.then((corpus) => {
-
-				corpus = corpus.toObject()
-
-				getDocuments(corpus._id).then((docsArr)=> {
-
-					processPromise(`${__dirname}/cp_x_matrix.js`, docsArr)
-						.then((data)=> {
-
-							corpus.X = cleanM(data.X)
-							corpus.palabras = data.palabras
-
-							return resolve(corpus)
-
-						})
-						.catch(error => reject(error)) //Error al procesar la matriz X
-
-				}).catch(error => reject(error))  //Error al obtener los docs de la BD
-
-			}).catch(e => reject(e)) //Error DB
-	})
-}*/
 
 
 /*	Retorna Promise.Resolve(lista_corpus) 
@@ -112,6 +76,43 @@ function getAllCorpus () {
 				.catch(e => reject(e))
 
 			}).catch(error => reject(error))
+	})
+}
+
+
+
+
+function getCorpus () {
+	return new Promise(function (resolve, reject){
+		
+		var start = moment.utc().startOf('day').toDate() //Inicio del dia
+		//var corpus_cache = []
+		var cores = require('os').cpus().length
+
+		Corpus.find({fecha: {$lt: start}}, "fecha").exec()
+			.then((arrCorpus)=> { 
+
+				arrCorpus = arrCorpus.map(d => d.toObject())
+
+				console.log("\nCorpus's a procesar", arrCorpus.length)
+
+				each(arrCorpus, function(corpus, next, error){
+
+					getDocuments(corpus._id)
+						.then(docs => {
+							corpus.documentos = docs
+
+							getXprocess(corpus)
+								.then(data => next(data))
+								.catch(e => error(e))
+						})
+						.catch(e => error(e))					
+
+				}, cores)
+					.then(data => resolve(data))
+					.catch(e => reject(e)) //Error de procesamiento
+
+			}).catch(e => reject(e)) //Error de BDD
 	})
 }
 
