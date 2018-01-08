@@ -28,19 +28,28 @@
         loadTemplates($state, "home", $http, $templateCache)
 
     }])
+    .factory("data", [function(){
+
+        var data = {
+            cp1: null,
+            cp2: null,
+            k: null,
+            lambda: null
+        }
+
+        return data
+
+    }])
     .controller("home", [function () {
 
     }])
-    .controller('dias', ["$scope", "$state", "$http", function($scope, $state, $http){
+    .controller('dias', ["$scope", "$state", "$http", "data", function($scope, $state, $http, data){
 
         var contador = []
         $scope.disable = null
         $scope.check = null
 
         $scope.calculo = function (corpus) {
-
-            console.log(corpus)
-            console.log(contador)
 
             if (contador.length < 2) {
                 contador.push(corpus)
@@ -61,6 +70,24 @@
             })
         }
 
+        $scope.generar = function () {
+
+            contador.sort((a, b) => {  
+                var a = new Date(a.fecha)
+                var b = new Date(b.fecha)
+                return a - b
+            })
+
+            if (contador.length === 2) {
+                data.cp1 = contador[0]._id
+                data.cp2 = contador[1]._id
+                data.k = 4
+                data.lambda = 0.6134
+                return $state.go("grafico1")
+            }
+
+            alert("Por favor, seleccione dos corpus a procesar")
+        }
 
 
         $http.get("/corpus")
@@ -91,15 +118,16 @@
 
         $scope.$on('$destroy', ()=>  socket.close())
     }])
-    .controller('grafico1', ["$scope", "$state", "$http", function ($scope, $state, $http) {
+    .controller('grafico1', ["$scope", "$state", "$http", "data", function ($scope, $state, $http, data) {
+
+        if (!data.cp1 || !data.cp2 || !data.k || !data.lambda)
+            return $state.go("dias")
 
         $scope.topicos_1 = []
         $scope.topicos_2 = []
 
-        $http.get('/corpus/5a41910005020b5fb91d6cbe/5a42e2803e12a67103e96817/jpp/5/0.567', {timeout: 2000000})
+        $http.get(`/corpus/${data.cp1}/${data.cp2}/jpp/${data.k}/${data.lambda}`, {timeout: 2000000})
         .then( function (res){
-
-            console.log(res.data)
 
             var M = res.data.M.reverse()
 
@@ -108,8 +136,17 @@
                 for (var j = 0; j < M[i].length; j++)
                     data_mapa.push([i, j, M[j][i] ])
 
-            $scope.topicos_1 = res.data.topicos_1.map(t => t.join(', '))
-            $scope.topicos_2 = res.data.topicos_2.map(t => t.join(', '))
+            var topicos_1 = res.data.topicos_1.map(t => t.join(', '))
+            var topicos_2 = res.data.topicos_2.map(t => t.join(', '))
+
+            for (var i = 0; i < topicos_1.length; i++)
+                topicos_1[i] = {data: topicos_1[i] , i}
+
+            for (var i = 0; i < topicos_2.length; i++)
+                topicos_2[i] = {data: topicos_2[i] , i}
+
+            $scope.topicos_1 = topicos_1
+            $scope.topicos_2 = topicos_2            
 
             var topicos = []
 
@@ -117,9 +154,6 @@
                 topicos.push(`topico ${i+1}`)
 
             var topicosY = topicos.slice()
-
-            console.log(topicos, topicosY)
-            
 
             Highcharts.chart('container', {
 
