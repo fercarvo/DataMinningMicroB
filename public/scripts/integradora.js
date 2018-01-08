@@ -1,4 +1,6 @@
-﻿angular.module('app', ['ui.router', 'nvd3'])
+﻿var socket = io.connect('http://localhost:3001', {'forceNew':true })
+
+angular.module('app', ['ui.router', 'nvd3'])
     .config(["$stateProvider", "$compileProvider", function ($stateProvider, $compileProvider) {
         $stateProvider
             .state('home', {
@@ -25,16 +27,19 @@
     }])
     .run(["$state", "$http", "$templateCache", function ($state, $http, $templateCache) {
 
-        loadTemplates($state, "home", $http, $templateCache)
+        loadTemplates($state, "dias", $http, $templateCache)
 
     }])
     .factory("data", [function(){
 
         var data = {
-            cp1: null,
-            cp2: null,
-            k: null,
-            lambda: null
+            params: {
+                id1: null,
+                id2: null,
+                k: null,
+                lambda: null
+            },
+            resultado: null
         }
 
         return data
@@ -45,6 +50,12 @@
     }])
     .controller('dias', ["$scope", "$state", "$http", "data", function($scope, $state, $http, data){
 
+        data.resultado = null
+
+        var peticion = ""
+
+        $scope.$on('$destroy', ()=>  socket.removeAllListeners())
+
         var contador = []
         $scope.disable = null
         $scope.check = null
@@ -54,9 +65,12 @@
             if (contador.length < 2) {
                 contador.push(corpus)
                 corpus.check = true
-            }            
+            }
 
-            if (contador.length == 2)
+            if (contador.filter(c => c._id === corpus._id).length > 1)
+                contador = []        
+
+            if (contador.length == 2 && contador[0]._id != contador[1]._id)
                 $scope.disable = true
         }
 
@@ -68,9 +82,14 @@
             $scope.data.forEach(corpus => {
                 corpus.check = false
             })
+
+            peticion = ""
         }
 
         $scope.generar = function () {
+
+            if (contador.length !== 2)
+                return alert("Por favor, seleccione dos corpus a procesar")
 
             contador.sort((a, b) => {  
                 var a = new Date(a.fecha)
@@ -78,17 +97,36 @@
                 return a - b
             })
 
-            if (contador.length === 2) {
-                data.cp1 = contador[0]._id
-                data.cp2 = contador[1]._id
-                data.k = 4
-                data.lambda = 0.6134
-                return $state.go("grafico1")
-            }
+            data.params.id1 = contador[0]._id
+            data.params.id2 = contador[1]._id
+            data.params.k = 4
+            data.params.lambda = 0.6134
 
-            alert("Por favor, seleccione dos corpus a procesar")
+            peticion = `${data.params.id1}/${data.params.id2}/${data.params.k}/${data.params.lambda}`
+
+            socket.emit('jpp', { peticion, data: data.params })
+            console.log(`Pidiendo ${peticion}`)
+
+            waitingDialog.show('Procesando corpus, por favor espere');
+
+            socket.on('jpp', function (res) {
+
+                console.log(`Recibido ${res.peticion}`)
+
+                if (res.peticion !== peticion)
+                    return
+
+                socket.removeAllListeners()
+
+                if (res.error) {
+                    alert("error," + res.error)
+                    return waitingDialog.hide()
+                }
+
+                data.resultado = res.data
+                $state.go("grafico1")
+            })                  
         }
-
 
         $http.get("/corpus")
             .then(res => {
@@ -120,163 +158,94 @@
     }])
     .controller('grafico1', ["$scope", "$state", "$http", "data", function ($scope, $state, $http, data) {
 
-        if (!data.cp1 || !data.cp2 || !data.k || !data.lambda)
+        if (!data.resultado)
             return $state.go("dias")
+
+        waitingDialog.hide()
 
         $scope.topicos_1 = []
         $scope.topicos_2 = []
 
-        $http.get(`/corpus/${data.cp1}/${data.cp2}/jpp/${data.k}/${data.lambda}`, {timeout: 2000000})
-        .then( function (res){
+        var M = data.resultado.M.reverse()
 
-            var M = res.data.M.reverse()
+        var data_mapa = []
+        for (var i = 0; i < M.length; i++)
+            for (var j = 0; j < M[i].length; j++)
+                data_mapa.push([i, j, M[j][i] ])
 
-            var data_mapa = []
-            for (var i = 0; i < M.length; i++)
-                for (var j = 0; j < M[i].length; j++)
-                    data_mapa.push([i, j, M[j][i] ])
+        var topicos_1 = data.resultado.topicos_1.map(t => t.join(', '))
+        var topicos_2 = data.resultado.topicos_2.map(t => t.join(', '))
 
-            var topicos_1 = res.data.topicos_1.map(t => t.join(', '))
-            var topicos_2 = res.data.topicos_2.map(t => t.join(', '))
+        for (var i = 0; i < topicos_1.length; i++)
+            topicos_1[i] = {data: topicos_1[i] , i}
 
-            for (var i = 0; i < topicos_1.length; i++)
-                topicos_1[i] = {data: topicos_1[i] , i}
+        for (var i = 0; i < topicos_2.length; i++)
+            topicos_2[i] = {data: topicos_2[i] , i}
 
-            for (var i = 0; i < topicos_2.length; i++)
-                topicos_2[i] = {data: topicos_2[i] , i}
+        $scope.topicos_1 = topicos_1
+        $scope.topicos_2 = topicos_2            
 
-            $scope.topicos_1 = topicos_1
-            $scope.topicos_2 = topicos_2            
+        var topicos = []
 
-            var topicos = []
+        for (var i = 0; i < M.length; i++)
+            topicos.push(`topico ${i+1}`)
 
-            for (var i = 0; i < M.length; i++)
-                topicos.push(`topico ${i+1}`)
+        var topicosY = topicos.slice()
 
-            var topicosY = topicos.slice()
+        Highcharts.chart('container', {
 
-            Highcharts.chart('container', {
+            chart: {
+                type: 'heatmap',
+                marginTop: 40,
+                marginBottom: 80,
+                plotBorderWidth: 1
+            },
 
-                chart: {
-                    type: 'heatmap',
-                    marginTop: 40,
-                    marginBottom: 80,
-                    plotBorderWidth: 1
-                },
+            title: {
+                text: 'Mapa de calor de la matriz M por periodos'
+            },
 
-                title: {
-                    text: 'Mapa de calor de la matriz M por periodos'
-                },
+            xAxis: {
+                categories: topicos//['topico1', 'topico2', 'topico3', 'topico4', 'topico5']
+            },
 
-                xAxis: {
-                    categories: topicos//['topico1', 'topico2', 'topico3', 'topico4', 'topico5']
-                },
+            yAxis: {
+                categories: topicosY.reverse(),
+                title: null
+            },
 
-                yAxis: {
-                    categories: topicosY.reverse(),
-                    title: null
-                },
+            colorAxis: {
+                min: 0,
+                minColor: '#FFFFFF',
+                maxColor: Highcharts.getOptions().colors[0]
+            },
 
-                colorAxis: {
-                    min: 0,
-                    minColor: '#FFFFFF',
-                    maxColor: Highcharts.getOptions().colors[0]
-                },
+            legend: {
+                align: 'right',
+                layout: 'vertical',
+                margin: 0,
+                verticalAlign: 'top',
+                y: 25,
+                symbolHeight: 280
+            },
 
-                legend: {
-                    align: 'right',
-                    layout: 'vertical',
-                    margin: 0,
-                    verticalAlign: 'top',
-                    y: 25,
-                    symbolHeight: 280
-                },
+            tooltip: {
+                formatter: function () {
+                    return '<b>' + this.series.xAxis.categories[this.point.x] + '</b> del periodo 1, se relaciona en <br><b>' + this.point.value + '</b>  con <b>' + this.series.yAxis.categories[this.point.y] + '</b> del periodo 2';
+                }
+            },
 
-                tooltip: {
-                    formatter: function () {
-                        return '<b>' + this.series.xAxis.categories[this.point.x] + '</b> del periodo 1, se relaciona en <br><b>' + this.point.value + '</b>  con <b>' + this.series.yAxis.categories[this.point.y] + '</b> del periodo 2';
-                    }
-                },
+            series: [{
+                name: 'Sales per employee',
+                borderWidth: 1,
+                data: data_mapa,
+                dataLabels: {
+                    enabled: true,
+                    color: '#000000'
+                }
+            }]
 
-                series: [{
-                    name: 'Sales per employee',
-                    borderWidth: 1,
-                    data: data_mapa,
-                    dataLabels: {
-                        enabled: true,
-                        color: '#000000'
-                    }
-                }]
-
-            });
-
-        }).catch(error => {
-            console.log(error)
         })
-
-
-            /*var M = [[1,2,3], [4,5,6], [7,8,9]].reverse()
-
-            var data_mapa = []
-            for (var i = 0; i < M.length; i++)
-                for (var j = 0; j < M[i].length; j++)
-                    data_mapa.push([i, j, M[j][i] ])
-        
-            Highcharts.chart('container', {
-
-                chart: {
-                    type: 'heatmap',
-                    marginTop: 40,
-                    marginBottom: 80,
-                    plotBorderWidth: 1
-                },
-
-                title: {
-                    text: 'Mapa de calor de la matriz M por periodos'
-                },
-
-                xAxis: {
-                    categories: ['topico1', 'topico2', 'topico3']
-                },
-
-                yAxis: {
-                    categories: ['topico1', 'topico2', 'topico3'],
-                    title: null
-                },
-
-                colorAxis: {
-                    min: 0,
-                    minColor: '#FFFFFF',
-                    maxColor: Highcharts.getOptions().colors[0]
-                },
-
-                legend: {
-                    align: 'right',
-                    layout: 'vertical',
-                    margin: 0,
-                    verticalAlign: 'top',
-                    y: 25,
-                    symbolHeight: 280
-                },
-
-                tooltip: {
-                    formatter: function () {
-                        return '<b>' + this.series.xAxis.categories[this.point.x] + '</b> del periodo 1, se relaciona en <br><b>' + this.point.value + '</b>  con <b>' + this.series.yAxis.categories[this.point.y] + '</b> del periodo 2';
-                    }
-                },
-
-                series: [{
-                    name: 'Sales per employee',
-                    borderWidth: 1,
-                    data: data_mapa,
-                    dataLabels: {
-                        enabled: true,
-                        color: '#000000'
-                    }
-                }]
-
-            });*/
-
     }])
     .controller('grafico2', ["$scope", function($scope){
 

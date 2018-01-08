@@ -1,1 +1,163 @@
-/* https://github.com/rstacruz/nprogress */ !function(n,e){"function"==typeof define&&define.amd?define(e):"object"==typeof exports?module.exports=e():n.NProgress=e()}(this,function(){function n(n,e,t){return e>n?e:n>t?t:n}function e(n){return 100*(-1+n)}function t(n,t,r){var i;return i="translate3d"===c.positionUsing?{transform:"translate3d("+e(n)+"%,0,0)"}:"translate"===c.positionUsing?{transform:"translate("+e(n)+"%,0)"}:{"margin-left":e(n)+"%"},i.transition="all "+t+"ms "+r,i}function r(n,e){var t="string"==typeof n?n:o(n);return t.indexOf(" "+e+" ")>=0}function i(n,e){var t=o(n),i=t+e;r(t,e)||(n.className=i.substring(1))}function s(n,e){var t,i=o(n);r(n,e)&&(t=i.replace(" "+e+" "," "),n.className=t.substring(1,t.length-1))}function o(n){return(" "+(n.className||"")+" ").replace(/\s+/gi," ")}function a(n){n&&n.parentNode&&n.parentNode.removeChild(n)}var u={};u.version="0.2.0";var c=u.settings={minimum:.08,easing:"ease",positionUsing:"",speed:200,trickle:!0,trickleRate:.02,trickleSpeed:800,showSpinner:!0,barSelector:'[role="bar"]',spinnerSelector:'[role="spinner"]',parent:"body",template:'<div class="bar" role="bar"><div class="peg"></div></div><div class="spinner" role="spinner"><div class="spinner-icon"></div></div>'};u.configure=function(n){var e,t;for(e in n)t=n[e],void 0!==t&&n.hasOwnProperty(e)&&(c[e]=t);return this},u.status=null,u.set=function(e){var r=u.isStarted();e=n(e,c.minimum,1),u.status=1===e?null:e;var i=u.render(!r),s=i.querySelector(c.barSelector),o=c.speed,a=c.easing;return i.offsetWidth,l(function(n){""===c.positionUsing&&(c.positionUsing=u.getPositioningCSS()),f(s,t(e,o,a)),1===e?(f(i,{transition:"none",opacity:1}),i.offsetWidth,setTimeout(function(){f(i,{transition:"all "+o+"ms linear",opacity:0}),setTimeout(function(){u.remove(),n()},o)},o)):setTimeout(n,o)}),this},u.isStarted=function(){return"number"==typeof u.status},u.start=function(){u.status||u.set(0);var n=function(){setTimeout(function(){u.status&&(u.trickle(),n())},c.trickleSpeed)};return c.trickle&&n(),this},u.done=function(n){return n||u.status?u.inc(.3+.5*Math.random()).set(1):this},u.inc=function(e){var t=u.status;return t?("number"!=typeof e&&(e=(1-t)*n(Math.random()*t,.1,.95)),t=n(t+e,0,.994),u.set(t)):u.start()},u.trickle=function(){return u.inc(Math.random()*c.trickleRate)},function(){var n=0,e=0;u.promise=function(t){return t&&"resolved"!==t.state()?(0===e&&u.start(),n++,e++,t.always(function(){e--,0===e?(n=0,u.done()):u.set((n-e)/n)}),this):this}}(),u.render=function(n){if(u.isRendered())return document.getElementById("nprogress");i(document.documentElement,"nprogress-busy");var t=document.createElement("div");t.id="nprogress",t.innerHTML=c.template;var r,s=t.querySelector(c.barSelector),o=n?"-100":e(u.status||0),l=document.querySelector(c.parent);return f(s,{transition:"all 0 linear",transform:"translate3d("+o+"%,0,0)"}),c.showSpinner||(r=t.querySelector(c.spinnerSelector),r&&a(r)),l!=document.body&&i(l,"nprogress-custom-parent"),l.appendChild(t),t},u.remove=function(){s(document.documentElement,"nprogress-busy"),s(document.querySelector(c.parent),"nprogress-custom-parent");var n=document.getElementById("nprogress");n&&a(n)},u.isRendered=function(){return!!document.getElementById("nprogress")},u.getPositioningCSS=function(){var n=document.body.style,e="WebkitTransform"in n?"Webkit":"MozTransform"in n?"Moz":"msTransform"in n?"ms":"OTransform"in n?"O":"";return e+"Perspective"in n?"translate3d":e+"Transform"in n?"translate":"margin"};var l=function(){function n(){var t=e.shift();t&&t(n)}var e=[];return function(t){e.push(t),1==e.length&&n()}}(),f=function(){function n(n){return n.replace(/^-ms-/,"ms-").replace(/-([\da-z])/gi,function(n,e){return e.toUpperCase()})}function e(n){var e=document.body.style;if(n in e)return n;for(var t,r=i.length,s=n.charAt(0).toUpperCase()+n.slice(1);r--;)if(t=i[r]+s,t in e)return t;return n}function t(t){return t=n(t),s[t]||(s[t]=e(t))}function r(n,e,r){e=t(e),n.style[e]=r}var i=["Webkit","O","Moz","ms"],s={};return function(n,e){var t,i,s=arguments;if(2==s.length)for(t in e)i=e[t],void 0!==i&&e.hasOwnProperty(t)&&r(n,t,i);else r(n,s[1],s[2])}}();return u}),NProgress.configure({minimum:.3,trickleSpeed:200,showSpinner:!1});
+/**
+ * Module for displaying "Waiting for..." dialog using Bootstrap
+ *
+ * @author Eugene Maslovich <ehpc@em42.ru>
+ */
+
+(function (root, factory) {
+	'use strict';
+
+	if (typeof define === 'function' && define.amd) {
+		define(['jquery'], function ($) {
+			return (root.waitingDialog = factory($));
+		});
+	}
+	else {
+		root.waitingDialog = root.waitingDialog || factory(root.jQuery);
+	}
+
+}(this, function ($) {
+	'use strict';
+
+	/**
+	 * Dialog DOM constructor
+	 */
+	function constructDialog($dialog) {
+		// Deleting previous incarnation of the dialog
+		if ($dialog) {
+			$dialog.remove();
+		}
+		return $(
+			'<div class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">' +
+				'<div class="modal-dialog modal-m">' +
+					'<div class="modal-content">' +
+						'<div class="modal-header" style="display: none;"></div>' +
+						'<div class="modal-body">' +
+							'<div class="progress progress-striped active" style="margin-bottom:0;">' +
+								'<div class="progress-bar" style="width: 100%"></div>' +
+							'</div>' +
+						'</div>' +
+					'</div>' +
+				'</div>' +
+			'</div>'
+		);
+	}
+
+	var $dialog, // Dialog object
+		settings; // Dialog settings
+
+	return {
+		/**
+		 * Opens our dialog
+		 * @param message Custom message
+		 * @param options Custom options:
+		 *   options.headerText - if the option is set to boolean false,
+		 *     it will hide the header and "message" will be set in a paragraph above the progress bar.
+		 *     When headerText is a not-empty string, "message" becomes a content
+		 *     above the progress bar and headerText string will be set as a text inside the H3;
+		 *   options.headerSize - this will generate a heading corresponding to the size number. Like <h1>, <h2>, <h3> etc;
+		 *   options.headerClass - extra class(es) for the header tag;
+		 *   options.dialogSize - bootstrap postfix for dialog size, e.g. "sm", "m";
+		 *   options.progressType - bootstrap postfix for progress bar type, e.g. "success", "warning";
+		 *   options.contentElement - determines the tag of the content element.
+		 *     Defaults to "p", which will generate a <p> tag;
+		 *   options.contentClass - extra class(es) for the content tag.
+		 */
+		show: function (message, options) {
+			// Assigning defaults
+			if (typeof options === 'undefined') {
+				options = {};
+			}
+			if (typeof message === 'undefined') {
+				message = 'Loading';
+			}
+			settings = $.extend({
+				headerText: '',
+				headerSize: 3,
+				headerClass: '',
+				dialogSize: 'm',
+				progressType: '',
+				contentElement: 'p',
+				contentClass: 'content',
+				onHide: null, // This callback runs after the dialog was hidden
+				onShow: null // This callback runs after the dialog was shown
+			}, options);
+
+			var $headerTag, $contentTag;
+
+			$dialog = constructDialog($dialog);
+
+			// Configuring dialog
+			$dialog.find('.modal-dialog').attr('class', 'modal-dialog').addClass('modal-' + settings.dialogSize);
+			$dialog.find('.progress-bar').attr('class', 'progress-bar');
+			if (settings.progressType) {
+				$dialog.find('.progress-bar').addClass('progress-bar-' + settings.progressType);
+			}
+
+			// Generate header tag
+			$headerTag = $('<h' + settings.headerSize + ' />');
+			$headerTag.css({ 'margin': 0 });
+			if (settings.headerClass) {
+				$headerTag.addClass(settings.headerClass);
+			}
+
+			// Generate content tag
+			$contentTag = $('<' + settings.contentElement + ' />');
+			if (settings.contentClass) {
+				$contentTag.addClass(settings.contentClass);
+			}
+
+			if (settings.headerText === false) {
+				$contentTag.html(message);
+				$dialog.find('.modal-body').prepend($contentTag);
+			}
+			else if (settings.headerText) {
+				$headerTag.html(settings.headerText);
+				$dialog.find('.modal-header').html($headerTag).show();
+
+				$contentTag.html(message);
+				$dialog.find('.modal-body').prepend($contentTag);
+			}
+			else {
+				$headerTag.html(message);
+				$dialog.find('.modal-header').html($headerTag).show();
+			}
+
+			// Adding callbacks
+			if (typeof settings.onHide === 'function') {
+				$dialog.off('hidden.bs.modal').on('hidden.bs.modal', function () {
+					settings.onHide.call($dialog);
+				});
+			}
+			if (typeof settings.onShow === 'function') {
+				$dialog.off('shown.bs.modal').on('shown.bs.modal', function () {
+					settings.onShow.call($dialog);
+				});
+			}
+			// Opening dialog
+			$dialog.modal();
+		},
+		/**
+		 * Closes dialog
+		 */
+		hide: function () {
+			if (typeof $dialog !== 'undefined') {
+				$dialog.modal('hide');
+			}
+		},
+		/**
+		 * Changes or displays current dialog message
+		 */
+		message: function (newMessage) {
+			if (typeof $dialog !== 'undefined') {
+				if (typeof newMessage !== 'undefined') {
+					return $dialog.find('.modal-header>h' + settings.headerSize).html(newMessage);
+				}
+				else {
+					return $dialog.find('.modal-header>h' + settings.headerSize).html();
+				}
+			}
+		}
+	};
+
+}));

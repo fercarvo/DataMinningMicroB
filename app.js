@@ -24,6 +24,20 @@ mongoose.connect(`mongodb://${db.user}:${db.password}@ds135486.mlab.com:35486/${
 app.set('views', __dirname + '/views')
 app.set('view engine', 'ejs')
 
+app.use((req, res, next)=> {
+
+	var date = new Date()
+	var secs = 60*5
+
+	res.set('Cache-Control', `public, max-age=${secs}`)
+	res.set('Date', date.toUTCString())
+
+	date.setSeconds(date.getSeconds() + secs)
+
+	res.set('Expires', date.toUTCString())
+	next()
+})
+
 app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -32,8 +46,6 @@ app.use(cookieParser())
 app.use(express.static(__dirname + '/public'))
 
 app.use('/', require('./routes/index'))
-app.use('/', require('./routes/streaming'))
-app.use('/', require('./routes/test'))
 app.use('/', require('./routes/dbtest'))
 
 // catch 404 and forward to error handler

@@ -5,11 +5,7 @@
     <title>Visualización</title>
     
     <link rel="stylesheet" type="text/css" href="/styles/vendor/nv.d3.min.css" />
-
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.css">
 
     <!-- Our Custom CSS -->
     <link rel="stylesheet" type="text/css" href="/styles/styles.css" />
@@ -102,7 +98,8 @@
 
     </div>
 
-<%- include scripts.ejs %>
+<script src="/scripts/vendor/angular.min.js"></script>
+<script src="/scripts/vendor/angular-ui-router.min.js"></script>
        
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
@@ -112,12 +109,12 @@
 <script src="/scripts/vendor/nv.d3.min.js"></script>
 <script src="/scripts/vendor/angular-ndv3.min.js"></script>
 
+<script src="/scripts/vendor/nprogress.js"></script>
+
 <!-- highcharts | heatmap -->
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/heatmap.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
-
-<script src="/scripts/vendor/numjs.min.js"></script>
 
 
 <!-- highcharts | heatmap -->
@@ -126,7 +123,6 @@
 <!-- Bootstrap Js CDN -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.js"></script>
 <!-- jQuery Custom Scroller CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.concat.min.js"></script>
 
@@ -215,9 +211,6 @@
                 document.body.style.pointerEvents = 'all'
             })
     }
-
-
-
 
 </script>
 

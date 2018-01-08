@@ -7,18 +7,16 @@ const cores = require('os').cpus().length
 const { getJPP, getCorpus, getXprocess } = require("../util/mongodb_data.js")
 const { eachSeries, eachParallel, processPromise } = require('../util/process.js')
 
+var io = require('socket.io')( require('http').createServer().listen(3001) )
+
 const Tweet = require('../models/Tweet.js')
 const Corpus = require('../models/Corpus.js')
 const Document = require('../models/Document.js')
 
 var corpus_cache = [] //Se calculan al inicio los corpus con su matriz X y palabras
+var en_proceso = []
 
 var calculo_jpp = new Map()
-
-router.use((req, res, next)=> {
-	res.set('Cache-Control', `public, max-age=${30}`)
-	next()
-})
 
 console.time("procesamiento corpus")
 getCorpus()
@@ -45,35 +43,58 @@ router.get("/corpus/:id/documentos", function (req, res, next){
 })
 
 
+io.on('connection', function (socket) {
+
+	socket.on('jpp', function (req) {
+
+		console.log("Key:", req.peticion)
+		var cache = calculo_jpp.get(req.peticion)
+
+		if (cache) //Si ya esta procesado, se devuelve
+			return io.emit("jpp", {peticion: req.peticion, data: cache})
+
+		if (en_proceso.indexOf(req.peticion) > -1) //Si se esta procesando, se rechaza
+			return console.log("encolado...")
+
+		var data_1 = corpus_cache.find(corpus => corpus._id.toString()===req.data.id1.toString())
+		var data_2 = corpus_cache.find(corpus => corpus._id.toString()===req.data.id2.toString())
+		var k = parseInt(req.data.k) || 6
+		var lambda = parseFloat(req.data.lambda) || 0.5 
+
+		if (!data_1 || !data_2)
+			return io.emit("jpp", {peticion: req.peticion, error: "Información de X aun no procesadas"})
+
+		en_proceso.push(req.peticion)
+
+		processPromise(`${__dirname}/../util/cp_jpp.js`, {data_1, data_2, k, lambda})
+			.then(resultado => {
+
+				calculo_jpp.set(req.peticion, resultado) //Se agrega el resultado al cache
+
+				var index = en_proceso.indexOf(req.peticion)
+
+				if (index > -1)
+					en_proceso.splice(index, 1) //Se elimina la peticion de la cola de espera
+
+				return io.emit("jpp", {peticion: req.peticion, data: resultado})
+
+			})
+			.catch(e => io.emit("jpp", {peticion: req.peticion, error: e}))
+	})
+})
+
+
 
 //Se obtiene el JPP resultante del corpus seleccionado
-router.get("/corpus/:id1/:id2/jpp/:k/:lambda", function (req, res, next) {
+router.get("/corpus/:id1/:id2/jpp/:k/:lambda/bla", function (req, res, next) {
 
-	var key = `${req.params.id1} ${req.params.id2} ${req.params.k} ${req.params.lambda}`;
+	var key = `${req.params.id1}/${req.params.id2}/${req.params.k}/${req.params.lambda}`;
 	var cache = calculo_jpp.get(key)
 
 	if (cache)
 		return res.json(cache)
 
-	var data_1 = corpus_cache.find(corpus => corpus._id.toString()===req.params.id1.toString())
-	var data_2 = corpus_cache.find(corpus => corpus._id.toString()===req.params.id2.toString())
-	var k = parseInt(req.params.k) || 6
-	var lambda = parseFloat(req.params.lambda) || 0.5 
-
-	if (!data_1 || !data_2)
-		return next(new Error("Información aun en procesamiento, espere"))
-
-	processPromise(`${__dirname}/../util/cp_jpp.js`, {data_1, data_2, k, lambda})
-		.then(resultado => {
-
-			calculo_jpp.set(key, resultado)
-			//return res.json(resultado)
-
-		})
-		.catch(error => next(error))
-
-	next(new Error("Procesando informacion... regrese mas tarde"))
-
+	return next(new Error("Información aun en procesamiento, espere"))
 })
 
 module.exports = router;
