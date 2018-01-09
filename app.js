@@ -27,7 +27,7 @@ app.set('view engine', 'ejs')
 app.use((req, res, next)=> {
 
 	var date = new Date()
-	var secs = 60*5
+	var secs = 60*45
 
 	res.set('Cache-Control', `public, max-age=${secs}`)
 	res.set('Date', date.toUTCString())

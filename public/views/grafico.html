@@ -6,34 +6,43 @@
 
 <div id="container" style="height: 400px; min-width: 310px; max-width: 800px; margin: 0 auto"></div>
 
-<table class="table"> Topicos 1
-  <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">Palabras</th>
-    </tr>
-  </thead>
 
-  <tbody>
-    <tr ng-repeat="topico in topicos_1">
-      <th>Topico {{$index + 1}}</th>
-      <td>{{topico.data}}</td>
-    </tr>
-  </tbody>
-</table>
+<div class="row">
+  <div class="col-md-6">
+    <table class="table"> Tópicos día 1
+      <thead>
+        <tr>
+          <th class="text-center" scope="col">#</th>
+          <th class="text-center" scope="col">Palabras</th>
+        </tr>
+      </thead>
+    
+      <tbody>
+        <tr ng-repeat="topico in topicos_1">
+          <th>Tópico {{$index + 1}}</th>
+          <td>{{topico.data}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-<table class="table"> Topicos 2
-  <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">Palabras</th>
-    </tr>
-  </thead>
+  <div class="col-md-6">
+    <table class="table"> Tópicos día 2
+      <thead>
+        <tr>
+          <th class="text-center" scope="col">#</th>
+          <th class="text-center" scope="col">Palabras</th>
+        </tr>
+      </thead>
+    
+      <tbody>
+        <tr ng-repeat="topico in topicos_2">
+          <th>Tópico {{$index + 1}}</th>
+          <td>{{topico.data}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-  <tbody>
-    <tr ng-repeat="topico in topicos_2">
-      <th>Topico {{$index + 1}}</th>
-      <td>{{topico.data}}</td>
-    </tr>
-  </tbody>
-</table>
+
