@@ -9,8 +9,8 @@
 
   <tbody>
     <tr ng-repeat="c in data | orderBy : ['fecha']">
-      <th>corpus {{$index + 1}}</th>
-      <td>{{c.fecha | date: 'dd-MM-yyyy'}}</td>
+      <th>Corpus {{$index + 1}}</th>
+      <td style="font-size: 110%;"> {{c.fecha | date: 'dd-MM-yyyy'}} </td>
       <td><input form="despacharForm" ng-disabled="disable" ng-checked="c.check" type="checkbox" ng-click="calculo(c)"><br></td>
     </tr>
   </tbody>

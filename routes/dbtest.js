@@ -46,7 +46,6 @@ router.get("/corpus/:id/documentos", function (req, res, next){
 io.on('connection', function (socket) {
 
 	socket.on('jpp', function (req) {
-
 		console.log("Key:", req.peticion)
 		var cache = calculo_jpp.get(req.peticion)
 
@@ -86,7 +85,7 @@ io.on('connection', function (socket) {
 
 
 //Se obtiene el JPP resultante del corpus seleccionado
-router.get("/corpus/:id1/:id2/jpp/:k/:lambda/bla", function (req, res, next) {
+router.get("/jpp/:id1/:id2/:k/:lambda", function (req, res, next) {
 
 	var key = `${req.params.id1}/${req.params.id2}/${req.params.k}/${req.params.lambda}`;
 	var cache = calculo_jpp.get(key)

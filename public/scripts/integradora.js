@@ -1,5 +1,47 @@
 ﻿var socket = io.connect('http://localhost:3001', {'forceNew':true })
 
+socket.on("jpp", res => {
+    var event = new CustomEvent(res.peticion, {detail: res})
+    document.dispatchEvent(event)
+})
+
+socket.on("disconnect", ()=> {
+    document.dispatchEvent(new Event("disconnect"))
+})
+
+
+//Key, es el id de suscripcion
+//data, información a enviador
+function requestJPP (peticion, data) {
+    return new Promise((resolve, reject)=> {
+
+        if (socket.disconnected)
+            return reject("Server disconnected")
+
+        function response (e) {     
+            var res = e.detail
+
+            if (res.error)
+                return reject(res.error)
+
+            document.removeEventListener(peticion, response)
+            document.removeEventListener("disconnect", disconnect)
+            resolve(res)
+        }
+
+        function disconnect () {
+            document.removeEventListener(peticion, response)
+            document.removeEventListener("disconnect", disconnect)
+            reject("Server disconnected")
+        }
+
+        socket.emit("jpp", {peticion, data})
+
+        document.addEventListener(peticion, response, false)
+        document.addEventListener("disconnect", disconnect, false)
+    })
+}
+
 angular.module('app', ['ui.router', 'nvd3'])
     .config(["$stateProvider", "$compileProvider", function ($stateProvider, $compileProvider) {
         $stateProvider
@@ -51,11 +93,7 @@ angular.module('app', ['ui.router', 'nvd3'])
     .controller('dias', ["$scope", "$state", "$http", "data", function($scope, $state, $http, data){
 
         data.resultado = null
-
         var peticion = ""
-
-        $scope.$on('$destroy', ()=>  socket.removeAllListeners())
-
         var contador = []
         $scope.disable = null
         $scope.check = null
@@ -104,31 +142,26 @@ angular.module('app', ['ui.router', 'nvd3'])
 
             peticion = `${data.params.id1}/${data.params.id2}/${data.params.k}/${data.params.lambda}`
 
-            socket.emit('jpp', { peticion, data: data.params })
-            console.log(`Pidiendo ${peticion}`)
-
             waitingDialog.show('Procesando corpus, por favor espere');
 
-            socket.on('jpp', function (res) {
+            requestJPP(peticion, data.params)
+                .then(res => {
+                    data.resultado = res.data
 
-                console.log(`Recibido ${res.peticion}`)
+                    if (!res.data.M)
+                        return alert("No se ha obtenido la informacion correcta"), waitingDialog.hide()
 
-                if (res.peticion !== peticion)
-                    return
+                    $state.go("grafico1")
+                    waitingDialog.hide()
 
-                socket.removeAllListeners()
-
-                if (res.error) {
-                    alert("error," + res.error)
-                    return waitingDialog.hide()
-                }
-
-                data.resultado = res.data
-                $state.go("grafico1")
-            })                  
+                })
+                .catch(e => {
+                    waitingDialog.hide()
+                    alert(`Error: ${e}`)
+                })               
         }
 
-        $http.get("/corpus")
+        $http.get("/corpus", { cache: true})
             .then(res => {
                 $scope.data = res.data
 
@@ -141,11 +174,11 @@ angular.module('app', ['ui.router', 'nvd3'])
     }])
     .controller('listener', ["$scope", "$state", function($scope, $state){
 
-        var socket = io.connect('http://localhost:3001', {'forceNew':true })
+        var socket_tweets = io.connect('http://localhost:3002', {'forceNew':true }) //tweets
 
         $scope.tweets = []
 
-        socket.on('tweet', function (tweet) {
+        socket_tweets.on('tweet', function (tweet) {
 
             if ($scope.tweets.length >= 25)
                 $scope.tweets.pop()
@@ -154,7 +187,7 @@ angular.module('app', ['ui.router', 'nvd3'])
             $scope.$apply()
         })
 
-        $scope.$on('$destroy', ()=>  socket.close())
+        $scope.$on('$destroy', ()=>  socket_tweets.close())
     }])
     .controller('grafico1', ["$scope", "$state", "$http", "data", function ($scope, $state, $http, data) {
 
@@ -367,79 +400,4 @@ angular.module('app', ['ui.router', 'nvd3'])
         function stream_index(d, i) {
             return {x: i, y: Math.max(0, d)};
         }
-
-
 }])
-/*
-setInterval(()=>{console.log("Not blocked code" + Math.random())}, 900)
-
-function bla(block){
-    //This will block for 10 sec, but
-    block(10000) //This blockCpu function is defined below
-    return "\n\nbla bla\n" //This is catched in the resolved promise
-
-}
-
-genericWorker(window, ["blockCpu", bla]).then(function (result){
-    console.log("End of blocking code", result)
-})
-.catch(function(error) { console.log(error) })
-*/
-
-/*  A Web Worker that does not use a File, it create that from a Blob
-    @cb_context, The context where the callback functions arguments are, ex: window
-    @cb, ["fn_name1", "fn_name2", function (fn1, fn2) {}]
-        The callback will be executed, and you can pass other functions to that cb
-*/
-/*function genericWorker(cb_context, cb) {
-    return new Promise(function (resolve, reject) {
-
-        if (!cb || !Array.isArray(cb))
-            return reject("Invalid data")
-
-        var callback = cb.pop()
-        var functions = cb
-
-        if (typeof callback != "function" || functions.some((fn)=>{return typeof cb_context[fn] != "function"}))
-            return reject(`The callback or some of the parameters: (${functions.toString()}) are not functions`)
-
-        if (functions.length>0 && !cb_context)
-            return reject("context is undefined")
-
-        callback = fn_string(callback) //Callback to be executed
-        functions = functions.map((fn_name)=> { return fn_string( cb_context[fn_name] ) })
-
-        var worker_file = window.URL.createObjectURL( new Blob(["self.addEventListener('message', function(e) { var bb = {}; var args = []; for (fn of e.data.functions) { bb[fn.name] = new Function(fn.args, fn.body); args.push(fn.name)}; var callback = new Function( e.data.callback.args, e.data.callback.body); args = args.map(function(fn_name) { return bb[fn_name] });  var result = callback.apply(null, args) ;self.postMessage( result );}, false)"]) )
-        var worker = new Worker(worker_file)
-
-        worker.postMessage({ callback: callback, functions: functions })
-
-        worker.addEventListener('error', function(error){ return reject(error.message) })
-
-        worker.addEventListener('message', function(e) {
-            resolve(e.data), worker.terminate()
-        }, false)
-
-        //From function to string, with its name, arguments and its body
-        function fn_string (fn) {
-            var name = fn.name, fn = fn.toString()
-
-            return { name: name, 
-                args: fn.substring(fn.indexOf("(") + 1, fn.indexOf(")")),
-                body: fn.substring(fn.indexOf("{") + 1, fn.lastIndexOf("}"))
-            }
-        }
-    })
-}*/
-
-//random blocking function
-/*
-function blockCpu(ms) {
-    var now = new Date().getTime();
-    var result = 0
-    while(true) {
-        result += Math.random() * Math.random();
-        if (new Date().getTime() > now +ms)
-            return;
-    }   
-}*/

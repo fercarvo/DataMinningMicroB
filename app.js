@@ -24,17 +24,21 @@ mongoose.connect(`mongodb://${db.user}:${db.password}@ds135486.mlab.com:35486/${
 app.set('views', __dirname + '/views')
 app.set('view engine', 'ejs')
 
-app.use((req, res, next)=> {
+app.use((req, res, next) => {
+
+	if (req.headers['content-type'])
+		res.set('Content-Type', req.headers['content-type'])
 
 	var date = new Date()
-	var secs = 60*5
+	var secs = 60
 
-	res.set('Cache-Control', `public, max-age=${secs}`)
+	res.set('Cache-Control', `private, max-age=${secs}`)
 	res.set('Date', date.toUTCString())
 
 	date.setSeconds(date.getSeconds() + secs)
 
 	res.set('Expires', date.toUTCString())
+
 	next()
 })
 
