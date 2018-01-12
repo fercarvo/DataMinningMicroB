@@ -1,22 +1,31 @@
-<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">ID</th>
-      <th scope="col">Fecha</th>
-      <th scope="col">Seleccionar</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <tr ng-repeat="c in data | orderBy : ['fecha']">
-      <th>Corpus {{$index + 1}}</th>
-      <td style="font-size: 110%;"> {{c.fecha | date: 'dd-MM-yyyy'}} </td>
-      <td><input form="despacharForm" ng-disabled="disable" ng-checked="c.check" type="checkbox" ng-click="calculo(c)"><br></td>
-    </tr>
-  </tbody>
-</table>
-
-  <form id="generar" ng-submit="generar()">
-    <button type="submit" class="btn btn-info">Generar</button>
-    <button type="button" ng-click="cancelar()" class="btn btn-info">Cancelar</button>
-  </form>
+<div class="rwo">
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
+    <form id="generar" ng-submit="generar()">
+      <button type="submit" class="btn btn-info">Generar</button>
+      <button type="button" ng-click="cancelar()" class="btn btn-info">Limpiar</button>
+    </form>
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="text-center" scope="col">ID</th>
+          <th class="text-center" scope="col">Fecha</th>
+          <th class="text-center" scope="col">Seleccionar</th>
+        </tr>
+      </thead>
+    
+      <tbody>
+        <tr ng-repeat="c in data | orderBy : ['fecha']">
+          <th class="text-center">corpus {{$index + 1}}</th>
+          <td class="text-center">{{c.fecha | date: 'dd-MM-yyyy'}}</td>
+          <td class="text-center">
+            <input form="despacharForm" ng-disabled="disable" ng-checked="c.check" type="checkbox" ng-click="calculo(c)">
+            <br>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+  </div>
+  <div class="col-md-2"></div>
+</div>

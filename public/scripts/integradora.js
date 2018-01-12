@@ -138,7 +138,7 @@ angular.module('app', ['ui.router', 'nvd3'])
             data.params.id1 = contador[0]._id
             data.params.id2 = contador[1]._id
             data.params.k = 4
-            data.params.lambda = 0.6134
+            data.params.lambda = 1.7
 
             peticion = `${data.params.id1}/${data.params.id2}/${data.params.k}/${data.params.lambda}`
 

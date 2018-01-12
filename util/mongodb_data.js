@@ -103,7 +103,10 @@ function getCorpus () {
 							corpus.documentos = docs
 
 							getXprocess(corpus)
-								.then(data => next(data))
+								.then(data => {
+									console.log("termino x", corpus._id)
+									next(data)
+								})
 								.catch(e => error(e))
 						})
 						.catch(e => error(e))					
