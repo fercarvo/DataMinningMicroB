@@ -30,7 +30,7 @@ app.use((req, res, next) => {
 		res.set('Content-Type', req.headers['content-type'])
 
 	var date = new Date()
-	var secs = 60
+	var secs = 60*30
 
 	res.set('Cache-Control', `private, max-age=${secs}`)
 	res.set('Date', date.toUTCString())
