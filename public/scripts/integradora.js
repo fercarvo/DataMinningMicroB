@@ -97,6 +97,8 @@ angular.module('app', ['ui.router', 'nvd3'])
         var contador = []
         $scope.disable = null
         $scope.check = null
+        $scope.k = 6
+        $scope.lambda = 0.65
 
         $scope.calculo = function (corpus) {
 
@@ -124,7 +126,7 @@ angular.module('app', ['ui.router', 'nvd3'])
             peticion = ""
         }
 
-        $scope.generar = function () {
+        $scope.generar = function (k, lambda) {
 
             if (contador.length !== 2)
                 return alert("Por favor, seleccione dos corpus a procesar")
@@ -137,8 +139,8 @@ angular.module('app', ['ui.router', 'nvd3'])
 
             data.params.id1 = contador[0]._id
             data.params.id2 = contador[1]._id
-            data.params.k = 4
-            data.params.lambda = 0.6134
+            data.params.k = k
+            data.params.lambda = lambda
 
             peticion = `${data.params.id1}/${data.params.id2}/${data.params.k}/${data.params.lambda}`
 
@@ -190,6 +192,9 @@ angular.module('app', ['ui.router', 'nvd3'])
         $scope.$on('$destroy', ()=>  socket_tweets.close())
     }])
     .controller('grafico1', ["$scope", "$state", "$http", "data", function ($scope, $state, $http, data) {
+
+        $scope.k = data.params.k
+        $scope.lambda = data.params.lambda
 
         if (!data.resultado)
             return $state.go("dias")

@@ -8,7 +8,13 @@
 <div class="row">
   <div class="col-md-2"></div>
   <div class="col-md-8">
-    <form id="generar" ng-submit="generar()">
+    <form id="generar" ng-submit="generar(k, lambda)">
+      <div>
+        K tópicos <input ng-model="k" min="1" max="8" required type="number">
+      </div>
+      <div>
+        Lambda <input ng-model='lambda' step=".0001" min="0" min="100" required type="number">
+      </div>
       <button type="submit" class="btn btn-info">Generar</button>
       <button type="button" ng-click="cancelar()" class="btn btn-info">Limpiar</button>
     </form>
