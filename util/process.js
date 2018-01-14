@@ -27,9 +27,9 @@ module.exports = {
 function processTweet(tweet) {
 	return {
 		id : tweet.id,
-		tweet : tweet.text,
+		tweet : (tweet.extended_tweet) ? tweet.extended_tweet.full_text : tweet.text,
 		clean_data : null,
-		usuario : "@" + tweet.user.screen_name,
+		usuario : "",
 	}
 }
 

@@ -38,12 +38,12 @@ process.on('message', function (documentos) {
 function tf_idf (corpus, word) {
 
 	function tf (doc, word) { 
-		return Math.log(1 + (doc.get(word) || 0) ) 
+		return Math.log10(1 + (doc.get(word) || 0) ) 
 	}
 
 	function idf (corpus, word) {
 		var nt = corpus.reduce((nt, doc)=> doc.has(word) ? ++nt : nt ,1)
-		return Math.log(1 + (corpus.length / nt))
+		return Math.log10(1 + (corpus.length / nt))
 	} 
 
 	var idf = idf(corpus, word)
