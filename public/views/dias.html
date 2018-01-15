@@ -1,4 +1,11 @@
-<div class="rwo">
+
+<div class="row">
+    <h4>Seleccione los días</h4>
+    <div id="calendario"></div>
+  
+</div>
+
+<div class="row">
   <div class="col-md-2"></div>
   <div class="col-md-8">
     <form id="generar" ng-submit="generar(k, lambda)">
@@ -23,7 +30,7 @@
       <tbody>
         <tr ng-repeat="c in data | orderBy : ['fecha']">
           <th class="text-center">corpus {{$index + 1}}</th>
-          <td class="text-center">{{c.fecha | date: 'dd-MM-yyyy'}}</td>
+          <td class="text-center">{{c.fecha | date: 'dd-MM-yyyy HH:mm' : 'UTC'}}</td>
           <td class="text-center">
             <input form="despacharForm" ng-disabled="disable" ng-checked="c.check" type="checkbox" ng-click="calculo(c)">
             <br>
@@ -35,3 +42,6 @@
   </div>
   <div class="col-md-2"></div>
 </div>
+
+
+<script src="/scripts/dias.js"></script>
