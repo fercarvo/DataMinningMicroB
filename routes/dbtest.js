@@ -23,10 +23,11 @@ getCorpus()
 	.then(data => { corpus_cache = data, console.timeEnd("procesamiento corpus") })
 	.catch(e => console.log(e))
 
+
 //Se obtienen todos los corpus recopilados
 router.get("/corpus", function (req, res, next){
 
-	Corpus.find({}, "fecha palabras").exec()
+	Corpus.find({}, "fecha").exec()
 		.then(docs => res.json(docs))
 		.catch(error => next(error))
 
