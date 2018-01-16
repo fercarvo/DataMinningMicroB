@@ -3,9 +3,9 @@ const Tweet = require('../models/Tweet.js')
 const Corpus = require('../models/Corpus.js')
 const Document = require('../models/Document.js')
 const moment = require('moment')
-const { eachSeries, eachParallel, processPromise, cleanM, isToday, each } = require('../util/process.js')
+const { eachSeries, eachParallel, processPromise, each } = require('../util/process.js')
 
-module.exports = { getDocuments, getJPP, getXprocess, getCorpus }
+module.exports = { getDocuments, getJPP }
 
 /*	fn_name getDccuments
 
@@ -40,100 +40,6 @@ function getDocuments(corpus_id) {
 }
 
 
-/*	Retorna Promise.Resolve(lista_corpus) 
- 	[{ _id: idcorpus,
- 		fecha: Date,
-		documentos: [
-			{
-				identificador: 23,
-				tweets : [
-					tweet: "string data"
-				]
-			},...
-		]
-	},...]
-*/
-function getAllCorpus () {
-	return new Promise(function (resolve, reject){
-		
-		var start = moment.utc().startOf('day').toDate() //Inicio del dia
-
-		Corpus.find({fecha: {$lt: start}}, "fecha").exec()
-			.then((arrCorpus)=> { 
-
-				arrCorpus = arrCorpus.map(d => d.toObject())
-
-				eachParallel(arrCorpus, (corpus, next, error)=> {
-
-					getDocuments(corpus._id)
-						.then(docs => {
-							corpus.documentos = docs
-							next()
-						})
-						.catch(e => error(e))
-				})
-				.then((res) => resolve(arrCorpus))	
-				.catch(e => reject(e))
-
-			}).catch(error => reject(error))
-	})
-}
-
-function getCorpus () {
-	return new Promise(function (resolve, reject){
-		
-		var start = moment.utc().startOf('day').toDate() //Inicio del dia
-		//var corpus_cache = []
-		var cores = require('os').cpus().length
-
-		Corpus.find({fecha: {$lt: start}}, "fecha").exec()
-			.then((arrCorpus)=> { 
-
-				arrCorpus = arrCorpus.map(d => d.toObject())
-
-				console.log("\nCorpus's a procesar", arrCorpus.length)
-
-				each(arrCorpus, function(corpus, next, error){
-
-					getDocuments(corpus._id)
-						.then(docs => {
-							corpus.documentos = docs
-
-							getXprocess(corpus)
-								.then(data => {
-									console.log("termino x", corpus._id)
-									next(data)
-								})
-								.catch(e => error(e))
-						})
-						.catch(e => error(e))					
-
-				}, cores)
-					.then(data => resolve(data))
-					.catch(e => reject(e)) //Error de procesamiento
-
-			}).catch(e => reject(e)) //Error de BDD
-	})
-}
-
-
-/*	Recibe los datos para el JPP y devuelve {W, H, M}
-*/
-function getJPP2(x, r, k, alpha, lambda, epsilon, maxiter) {
-	return new Promise(function (resolve, reject) {
-
-		processPromise(`${__dirname}/cp_JPP.js`, {x, r, k, alpha, lambda, epsilon, maxiter})
-			.then(function (data) {
-
-				for (key in data)
-					data[key] = cleanM(data[key]) //Se itera las 3 matrices para limpiar datos no numericos
-
-				return resolve(data)
-			})
-			.catch(error => reject(error))
-	})
-}
-
 function getJPP(corpus1, corpus2, k, lambda) {
 	return new Promise(function (resolve, reject){
 		console.log('Iniciando proceso de corpus')
@@ -144,8 +50,6 @@ function getJPP(corpus1, corpus2, k, lambda) {
 		Promise.all([c1, c2])
 		.then(arr_data => {
 			console.timeEnd('Obtencion de X')
-
-			console.log(arr_data[0].setPalabras)
 
 			var data_1 = arr_data[0]
 			var data_2 = arr_data[1]
@@ -176,29 +80,3 @@ function getX(corpus_id) {
 		})
 	})
 }
-
-
-/*	Recibe un corpus sin procesar y retorna un
-	Promise.resolve( {X: [[],...], palabras_corpus: [string,...]} )
-*/
-function getXprocess(corpus) {
-	return new Promise(function (resolve, reject){
-
-		processPromise(`${__dirname}/cp_corpus.js`, corpus.documentos)
-			.then((data)=> {
-
-				corpus.setPalabras = data.setPalabras
-				corpus.documentos = null
-				corpus.corpus = data.corpus
-
-
-				return resolve(corpus)
-
-			})
-			.catch(error => reject(error)) //Error al procesar la matriz X
-	})
-}
-
-
-
-

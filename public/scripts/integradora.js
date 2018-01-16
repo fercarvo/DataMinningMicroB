@@ -162,7 +162,7 @@ angular.module('app', ['ui.router', 'nvd3'])
 
         $http.get("/corpus", { cache: true})
             .then(res => {
-                $scope.data = res.data
+                $scope.data = res.data.filter(c => c.compressed)
 
                 $scope.data.forEach(corpus => {
                     corpus.check = false

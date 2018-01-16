@@ -3,8 +3,10 @@ var Schema = mongoose.Schema
 
 var Corpus = new Schema({
     fecha: Date, //UTC time
-    X: [[Number]],
-    palabras: [String]
+    compressed: {
+        type: Boolean,
+        default: false
+    }
 })
 
 module.exports = mongoose.model('Corpus', Corpus);
