@@ -66,23 +66,6 @@ function findIndicesOfMax(inp, count) {
     return outp;
 }
 
-// corpus = [{word: frecuency}]
-function tf_idf (corpus, word) {
-
-	function tf (doc, word) { 
-		return Math.log(1 + (doc[word]|| 0) ) 
-	}
-
-	function idf (corpus, word) {
-		var nt = corpus.reduce((nt, doc)=> doc[word] ? ++nt : nt ,1)
-		return Math.log(1 + (corpus.length / nt))
-	} 
-
-	var idf = idf(corpus, word)
-
-	return corpus.reduce((xT, doc) => [...xT, tf(doc, word)*idf], [])
-}
-
 function extraerTopicos (h, setPalabras) {
 	var topicos = []
 
@@ -104,6 +87,5 @@ function cleanM(matrix) {
 				matrix[i][j] = 0.000000001
 		}
 	}
-
 	return matrix
 }

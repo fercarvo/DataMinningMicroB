@@ -7,8 +7,7 @@ var Tweet = new Schema({
         ref: 'Document',
         required: true         
     },
-    tweet: String,
-    id: Number
+    tweet: String
 })
 
 module.exports = mongoose.model('Tweet', Tweet);

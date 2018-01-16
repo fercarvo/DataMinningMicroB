@@ -4,7 +4,7 @@ const mongoose = require("mongoose")
 const moment = require("moment")
 const cores = require('os').cpus().length
 
-const { getJPP, getCorpus, getXprocess } = require("../util/mongodb_data.js")
+const { getJPP, getCorpus, getXprocess, getDocuments } = require("../util/mongodb_data.js")
 const { eachSeries, eachParallel, processPromise } = require('../util/process.js')
 
 var io = require('socket.io')( require('http').createServer().listen(3001) )
@@ -37,9 +37,27 @@ router.get("/corpus", function (req, res, next){
 //Se obtienen todos los documentos de un corpus
 router.get("/corpus/:id/documentos", function (req, res, next){
 
+/*	getDocuments(req.params.id)
+		.then(data => {
+			var documentos = data.map(doc => {
+				return {
+					_id : doc._id,
+					identificador: doc.identificador, 
+					tweets: doc.tweets.reduce((tweets, tweet)=> [...tweets, tweet.tweet] ,[])
+				}
+			})
+
+			res.json(documentos)
+		})
+		.catch(e => next(e))
+*/
 	Document.find({_corpus: req.params.id})
 	.exec()
-		.then(docs => res.json(docs))
+		.then(docs => {
+			docs = docs.map(d => d.toObject())
+			docs.forEach(d => {d.tweets=d.tweets.length})
+			res.json(docs)
+		})
 		.catch(error => next(error))
 })
 
@@ -96,5 +114,100 @@ router.get("/jpp/:id1/:id2/:k/:lambda", function (req, res, next) {
 
 	return next(new Error("Información aun en procesamiento, espere"))
 })
+
+
+
+
+
+
+
+
+
+/* //Compactador de corpus/documents/tweets
+Corpus.findOne({_id: '5a3eee0105020b5fb91ce7e9'}).exec((error, corpus)=> {
+	if (error)
+		return console.log("error", error);
+	
+	console.log('corpus', corpus)
+	Document.find({_corpus: corpus._id}).exec((error, docs)=> {
+		if (error)
+			return console.log("Error docs", error);
+
+		eachSeries(docs, function(doc, next, error){
+
+			Tweet.find({_document: doc._id}).exec((error, tweets)=> {
+				if (error) {
+					console.log("Error encontrar tweets")
+					return error(error)
+				}
+				tweets = tweets.map(t => t.toObject())
+				tweets = tweets.reduce((arr, t)=> [...arr, t.tweet], []) //["asdasdasd", "asdasd"]
+				doc.tweets = tweets
+				doc.save((error, doc)=> {
+
+					if (error) {
+						console.log('No se pudo actualizar el doc')
+						return error(error)
+					}
+
+					console.log('new doc', doc)
+
+					Tweet.remove({_document: doc._id}).exec(e => {
+						if (e)
+							return error(e)
+
+						console.log('Eliminados tweets de', doc._id)
+						Tweet.find({_document: doc._id}).exec((err, tweets)=> {
+							if (err)
+								return console.log('No se pudo buscar tweets eliminados', err);
+
+							console.log('No deben haber tweets', tweets)
+							next()
+						})
+					})
+				})
+			})
+
+		}).then(bien => {
+			console.log('Se elimino todo tweet y actualizo corpus')
+		})
+		.catch(e => console.log('Error', e))
+	})
+})
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 module.exports = router;

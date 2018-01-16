@@ -155,11 +155,10 @@ function eachParallel(array, fn, concurrency) {
 	})
 }
 
-//Concurrency == 1, seria
-//Concurrency == Infinity, paralelo
+//Concurrency == 1, serie
+//Concurrency == Infinity, todo en paralelo
 function each(array, fn, concurrency) {
 	return new Promise((resolve, reject) => {
-
 		concurrency = (concurrency > 0) ? concurrency : 1
 		var used = 0
 		var size = array.length
@@ -171,15 +170,11 @@ function each(array, fn, concurrency) {
 
 		function next(data) {
 			resolved_data.push( data )
-
 			used--
-
 			if (resolved_data.length == size)
 				return resolve(resolved_data)
-
 			if (used >= concurrency || array.length == 0)
 				return
-
 			used++ 
 			fn(array.pop(), next, error)
 		}
@@ -188,7 +183,6 @@ function each(array, fn, concurrency) {
 			used = Infinity
 			return reject(error)
 		}
-
 	})
 }
 

@@ -79,9 +79,6 @@ function getAllCorpus () {
 	})
 }
 
-
-
-
 function getCorpus () {
 	return new Promise(function (resolve, reject){
 		
@@ -120,10 +117,9 @@ function getCorpus () {
 }
 
 
-
 /*	Recibe los datos para el JPP y devuelve {W, H, M}
 */
-function getJPP(x, r, k, alpha, lambda, epsilon, maxiter) {
+function getJPP2(x, r, k, alpha, lambda, epsilon, maxiter) {
 	return new Promise(function (resolve, reject) {
 
 		processPromise(`${__dirname}/cp_JPP.js`, {x, r, k, alpha, lambda, epsilon, maxiter})
@@ -135,6 +131,41 @@ function getJPP(x, r, k, alpha, lambda, epsilon, maxiter) {
 				return resolve(data)
 			})
 			.catch(error => reject(error))
+	})
+}
+
+function getJPP(corpus1, corpus2, k, lambda) {
+	return new Promise(function (resolve, reject){
+
+		var c1 = getX(corpus1)
+		var c2 = getX(corpus2)
+
+		Promise.all([c1, c2])
+		.then(arr_data => {
+			var data_1 = arr_data[0]
+			var data_2 = arr_data[1]
+
+			processPromise(`${__dirname}/cp_jpp.js`, {data_1, data_2, k, lambda})
+				.then(resultado => resolve(resultado))
+				.catch(e => reject(e))
+		})
+		.catch(e => reject(e))
+	})
+}
+
+
+function getX(corpus_id) {
+	return new Promise(function (resolve, reject){
+		Document.find({_corpus: corpus_id}).exec((error, documentos)=> {
+			if (error)
+				return reject(error)
+
+			documentos = documentos.map(doc => doc.toObject())
+
+			processPromise(`${__dirname}/cp_corpus_2.js`, documentos)
+				.then(data => resolve(data))
+				.catch(error => reject(error))
+		})
 	})
 }
 

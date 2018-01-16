@@ -6,7 +6,7 @@ process.on('message', function (documentos) {
 
 	documentos.forEach(doc => {
 		var map = {}
-		var docWords = doc.tweets.reduce((words, t) => [...words, ...cleaner(t.tweet) ], []) //Todas las palabras del doc
+		var docWords = doc.tweets.reduce((words, t) => [...words, ...cleaner(t) ], []) //Todas las palabras del doc
 
 		docWords.forEach(word => {
 			if (word in map)

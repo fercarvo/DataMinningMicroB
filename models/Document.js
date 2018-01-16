@@ -7,7 +7,8 @@ var Document = new Schema({
         ref: 'Corpus',
         required: true         
     },
-    identificador: Number
+    identificador: Number,
+    tweets: [String]
 })
 
 module.exports = mongoose.model('Document', Document);

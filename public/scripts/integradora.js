@@ -20,10 +20,8 @@ function requestJPP (peticion, data) {
 
         function response (e) {     
             var res = e.detail
-
             if (res.error)
                 return reject(res.error)
-
             document.removeEventListener(peticion, response)
             document.removeEventListener("disconnect", disconnect)
             resolve(res)
@@ -36,7 +34,6 @@ function requestJPP (peticion, data) {
         }
 
         socket.emit("jpp", {peticion, data})
-
         document.addEventListener(peticion, response, false)
         document.addEventListener("disconnect", disconnect, false)
     })
@@ -183,9 +180,9 @@ angular.module('app', ['ui.router', 'nvd3'])
         socket_tweets.on('tweet', function (tweet) {
 
             if ($scope.tweets.length >= 25)
-                $scope.tweets.pop()
+                $scope.tweets.pop();
 
-            $scope.tweets.unshift(tweet)
+            $scope.tweets = [tweet, ...$scope.tweets]
             $scope.$apply()
         })
 
