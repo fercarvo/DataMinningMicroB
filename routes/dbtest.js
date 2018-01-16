@@ -18,11 +18,11 @@ var en_proceso = []
 
 var calculo_jpp = new Map()
 
-console.time("procesamiento corpus")
+/*console.time("procesamiento corpus")
 getCorpus()
 	.then(data => { corpus_cache = data, console.timeEnd("procesamiento corpus") })
 	.catch(e => console.log(e))
-
+*/
 
 //Se obtienen todos los corpus recopilados
 router.get("/corpus", function (req, res, next){
@@ -61,7 +61,7 @@ router.get("/corpus/:id/documentos", function (req, res, next){
 		.catch(error => next(error))
 })
 
-
+/*
 io.on('connection', function (socket) {
 
 	socket.on('jpp', function (req) {
@@ -96,6 +96,43 @@ io.on('connection', function (socket) {
 
 				return io.emit("jpp", {peticion: req.peticion, data: resultado})
 
+			})
+			.catch(e => io.emit("jpp", {peticion: req.peticion, error: e}))
+	})
+})
+
+
+*/
+
+io.on('connection', function (socket) {
+
+	socket.on('jpp', function (req) {
+		console.log("Key:", req.peticion)
+		var cache = calculo_jpp.get(req.peticion)
+
+		if (cache) //Si ya esta procesado, se devuelve
+			return io.emit("jpp", {peticion: req.peticion, data: cache})
+
+		if (en_proceso.indexOf(req.peticion) > -1) //Si se esta procesando, se rechaza
+			return console.log("encolado...")
+
+		var cp1 = req.data.id1
+		var cp2 = req.data.id2
+		var k = parseInt(req.data.k) || 6
+		var lambda = parseFloat(req.data.lambda) || 0.5 
+
+		en_proceso.push(req.peticion)
+
+		getJPP(cp1, cp2, k, lambda)
+			.then(resultado => {
+
+				calculo_jpp.set(req.peticion, resultado) //Se agrega el resultado al cache
+				var index = en_proceso.indexOf(req.peticion)
+
+				if (index > -1)
+					en_proceso.splice(index, 1) //Se elimina la peticion de la cola de espera
+
+				return io.emit("jpp", {peticion: req.peticion, data: resultado})
 			})
 			.catch(e => io.emit("jpp", {peticion: req.peticion, error: e}))
 	})

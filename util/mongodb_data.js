@@ -136,12 +136,17 @@ function getJPP2(x, r, k, alpha, lambda, epsilon, maxiter) {
 
 function getJPP(corpus1, corpus2, k, lambda) {
 	return new Promise(function (resolve, reject){
-
+		console.log('Iniciando proceso de corpus')
+		console.time('Obtencion de X')
 		var c1 = getX(corpus1)
 		var c2 = getX(corpus2)
 
 		Promise.all([c1, c2])
 		.then(arr_data => {
+			console.timeEnd('Obtencion de X')
+
+			console.log(arr_data[0].setPalabras)
+
 			var data_1 = arr_data[0]
 			var data_2 = arr_data[1]
 
@@ -161,6 +166,9 @@ function getX(corpus_id) {
 				return reject(error)
 
 			documentos = documentos.map(doc => doc.toObject())
+
+			if (!documentos.some(doc => doc.tweets.length > 70))
+				return reject(`${corpus_id} no posee tweets`)
 
 			processPromise(`${__dirname}/cp_corpus_2.js`, documentos)
 				.then(data => resolve(data))
