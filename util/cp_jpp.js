@@ -3,7 +3,7 @@ const { JPP, processPromise } = require('../util/process.js')
 
 process.on('message', function (d) {
 	var k = d.k
-	var alpha = 10000000
+	var alpha = 0.1
     var lambda = d.lambda
     var epsilon = 0.01
     var maxiter = 100

@@ -30,7 +30,7 @@ router.get("/corpus/:id/documentos", function (req, res, next){
 	.exec()
 		.then(docs => {
 			docs = docs.map(d => d.toObject()).sort((d1, d2)=> d1.identificador-d2.identificador)
-			docs.forEach(d => {d.tweets=d.tweets.length})
+			//docs.forEach(d => {d.tweets=d.tweets.length})
 			res.json(docs)
 		})
 		.catch(error => next(error))
