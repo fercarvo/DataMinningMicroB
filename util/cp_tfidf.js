@@ -1,7 +1,7 @@
 
 //data= {corpus, palabra}, i
 process.on('message', function (data) {
-	var X = data.setPalabras.reduce((arr, word) => [...arr, tf_idf(data.corpus, word)], [])
+	var X = data.setPalabras.reduce((arr, word) => [...arr, tf_idf2(data.corpus, word)], [])
 	process.send(X)
 
 })
@@ -29,53 +29,16 @@ function tf_idf (corpus, word) {
 	return corpus.reduce((xT, doc) => [...xT, tf(doc, word)*idf], [])
 }
 
-// corpus = [{word: frecuency}]
 function tf_idf2 (corpus, word) {
-
 	function tf (doc, word) {
-		var max_word = Object.keys(doc).reduce((word, next) => doc[word] > doc[next] ? word : next);
-		return 0.5 + ((0.5*doc[word])/max_word) 
+		let frecuency = doc[word] ? doc[word] : 0;
+		let max_frec = Object.keys(doc).reduce((max, next) => doc[max] > doc[next] ? max : next)
+
+		return 0.5 + ((0.5*frecuency)/max_frec) 
 	}
 
-	function idf (corpus, word) {
-		var nt = corpus.reduce((nt, doc)=> doc[word] ? ++nt : nt ,1)
-		return Math.log10(1 + (corpus.length / nt))
-	} 
+	var nt = corpus.reduce((nt, doc)=> doc[word] ? ++nt : nt ,1)
+	var idf = Math.log10(1 + (corpus.length / nt))
 
-	var idf = idf(corpus, word)
-
-	return corpus.reduce((xT, doc) => [...xT, tf(doc, word)*idf], [])
-}
-
-// TF double normalization 0.5, IDF probabilistic
-function tf_idf3 (corpus, word) {
-	var nt = corpus.reduce((nt, doc)=> (word in doc) ? ++nt : nt ,1)
-
-	function tf (doc, word) {
-		var max_word = Object.keys(doc).reduce((word, next) => doc[word] > doc[next] ? word : next);
-		return 0.5 + ((0.5*(doc[word] ? doc[word] : 0))/max_word)
-	}
-
-	function idf (corpus, word) {
-		return Math.log10((corpus.length - nt)/nt)
-	} 
-
-	var idf = idf(corpus, word)
-
-	return corpus.reduce((xT, doc) => [...xT, tf(doc, word)*idf], [])
-}
-
-//Esquema 2 wikipedia {@link: https://en.wikipedia.org/wiki/Tf%E2%80%93idf}
-function tf_idf4 (corpus, word) {
-	var nt = corpus.reduce((nt, doc)=> (word in doc) ? ++nt : nt ,1)
-
-	function tf (doc, word) {
-		return 1 + Math.log10(doc[word] || 0)
-	}
-
-	function idf (corpus, word) {
-		return Math.log10(1 + (corpus.length/nt))
-	} 
-	var idf = idf(corpus, word)
 	return corpus.reduce((xT, doc) => [...xT, tf(doc, word)*idf], [])
 }

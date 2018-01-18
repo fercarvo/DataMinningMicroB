@@ -43,13 +43,13 @@ function getDocuments(corpus_id) {
 function getJPP(corpus1, corpus2, k, lambda) {
 	return new Promise(function (resolve, reject){
 		console.log('Iniciando proceso de corpus')
-		console.time('Obtencion de X')
+		console.time(`X of ${corpus1}/${corpus2}`)
 		var c1 = getX(corpus1)
 		var c2 = getX(corpus2)
 
 		Promise.all([c1, c2])
 		.then(arr_data => {
-			console.timeEnd('Obtencion de X')
+			console.timeEnd(`X of ${corpus1}/${corpus2}`)
 
 			var data_1 = arr_data[0]
 			var data_2 = arr_data[1]

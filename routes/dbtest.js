@@ -93,7 +93,7 @@ router.get("/jpp/:id1/:id2/:k/:lambda", function (req, res, next) {
 
 
 /* //Compactador de corpus/documents/tweets
-Corpus.findOne({_id: '5a5bef01dfb513310d287e0e'}).exec((error, corpus)=> {
+Corpus.findOne({_id: '5a5d408134eac139ed8a4a58'}).exec((error, corpus)=> {
 	if (error)
 		return console.log("error", error);
 
