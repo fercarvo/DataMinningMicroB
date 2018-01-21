@@ -30,7 +30,7 @@ router.get("/corpus/:id/documentos", function (req, res, next){
 	.exec()
 		.then(docs => {
 			docs = docs.map(d => d.toObject()).sort((d1, d2)=> d1.identificador-d2.identificador)
-			//docs.forEach(d => {d.tweets=d.tweets.length})
+			docs.forEach(d => {d.tweets=d.tweets.length})
 			res.json(docs)
 		})
 		.catch(error => next(error))
@@ -93,7 +93,7 @@ router.get("/jpp/:id1/:id2/:k/:lambda", function (req, res, next) {
 
 
 /* //Compactador de corpus/documents/tweets
-Corpus.findOne({_id: '5a5d408134eac139ed8a4a58'}).exec((error, corpus)=> {
+Corpus.findOne({_id: '5a618ab8d52adc311cd76299'}).exec((error, corpus)=> {
 	if (error)
 		return console.log("error", error);
 

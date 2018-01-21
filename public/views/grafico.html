@@ -1,50 +1,31 @@
 <!--<nvd3 options="options" data="data"></nvd3>-->
-<h2>Visualización 1</h2>
-
-<hr>
-<br>
-<h4>K: {{k}}</h4>
+<h3>Visualización tópicos</h3>
 <h4>Lambda: {{lambda}}</h4>
 
 <div id="container" style="height: 400px; min-width: 310px; max-width: 800px; margin: 0 auto"></div>
-
-
-<div class="row">
-  <div class="col-md-6">
-    <table class="table"> Tópicos día 1
-      <thead>
-        <tr>
-          <th class="text-center" scope="col">#</th>
-          <th class="text-center" scope="col">Palabras</th>
-        </tr>
-      </thead>
-    
+  <div >
+    <table class="table table-striped table-bordered">
+      <h4>Tópicos día 1</h4> 
+ 
       <tbody>
         <tr ng-repeat="topico in topicos_1">
-          <th>Tópico {{$index + 1}}</th>
-          <td>{{topico.data}}</td>
+          <th>TP{{$index + 1}}</th>
+          <td ng-repeat='palabra in topico'>{{palabra}}</td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <div class="col-md-6">
-    <table class="table"> Tópicos día 2
-      <thead>
-        <tr>
-          <th class="text-center" scope="col">#</th>
-          <th class="text-center" scope="col">Palabras</th>
-        </tr>
-      </thead>
-    
+  <div >
+    <table class="table table-striped table-bordered">
+      <h4>Tópicos día 2</h4> 
       <tbody>
         <tr ng-repeat="topico in topicos_2">
-          <th>Tópico {{$index + 1}}</th>
-          <td>{{topico.data}}</td>
+          <th>TP{{$index + 1}}</th>
+          <td ng-repeat='palabra in topico'>{{palabra}}</td>
         </tr>
       </tbody>
     </table>
   </div>
-</div>
 
 

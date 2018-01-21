@@ -95,7 +95,7 @@ angular.module('app', ['ui.router', 'nvd3'])
         $scope.disable = null
         $scope.check = null
         $scope.k = 6
-        $scope.lambda = 0.65
+        $scope.lambda = 0.001
 
         $scope.calculo = function (corpus) {
 
@@ -138,6 +138,9 @@ angular.module('app', ['ui.router', 'nvd3'])
             data.params.id2 = contador[1]._id
             data.params.k = k
             data.params.lambda = lambda
+
+            console.log(`\nCp1 ${contador[0].fecha}`)
+            console.log(`Cp2 ${contador[1].fecha}`)
 
             peticion = `${data.params.id1}/${data.params.id2}/${data.params.k}/${data.params.lambda}`
 
@@ -206,16 +209,16 @@ angular.module('app', ['ui.router', 'nvd3'])
         var data_mapa = []
         for (var i = 0; i < M.length; i++)
             for (var j = 0; j < M[i].length; j++)
-                data_mapa.push([i, j, M[j][i] ])
+                data_mapa.push([i, j, Math.round( M[j][i] * 100000)/100000 ])
 
-        var topicos_1 = data.resultado.topicos_1.map(t => t.join(', '))
-        var topicos_2 = data.resultado.topicos_2.map(t => t.join(', '))
+        var topicos_1 = data.resultado.topicos_1//.map(t => t.join(' - '))
+        var topicos_2 = data.resultado.topicos_2//.map(t => t.join(' ~ '))
 
-        for (var i = 0; i < topicos_1.length; i++)
+        /*for (var i = 0; i < topicos_1.length; i++)
             topicos_1[i] = {data: topicos_1[i] , i}
 
         for (var i = 0; i < topicos_2.length; i++)
-            topicos_2[i] = {data: topicos_2[i] , i}
+            topicos_2[i] = {data: topicos_2[i] , i}*/
 
         $scope.topicos_1 = topicos_1
         $scope.topicos_2 = topicos_2            
@@ -223,7 +226,7 @@ angular.module('app', ['ui.router', 'nvd3'])
         var topicos = []
 
         for (var i = 0; i < M.length; i++)
-            topicos.push(`topico ${i+1}`)
+            topicos.push(`TP ${i+1}`)
 
         var topicosY = topicos.slice()
 
