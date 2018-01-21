@@ -78,7 +78,8 @@ angular.module('app', ['ui.router', 'nvd3'])
                 k: null,
                 lambda: null
             },
-            resultado: null
+            resultado: null,
+            grafico2: {}
         }
 
         return data
@@ -96,6 +97,8 @@ angular.module('app', ['ui.router', 'nvd3'])
         $scope.check = null
         $scope.k = 6
         $scope.lambda = 0.001
+
+
 
         $scope.calculo = function (corpus) {
 
@@ -196,6 +199,31 @@ angular.module('app', ['ui.router', 'nvd3'])
         $scope.k = data.params.k
         $scope.lambda = data.params.lambda
 
+        var M_copy = [...data.resultado.M]
+
+        $scope.obtenerFila = function(fila){
+            console.log('fila: ', M_copy[fila])
+            data.grafico2 = {
+                nombre: `Topico ${fila + 1} dia 2 con tópicos del día 1`,
+                data: M_copy[fila]
+            }
+            $state.go('grafico2')
+        }
+        $scope.obtenerColumna= function(columna){
+            var valores = []
+            for (var i = 0; i < M_copy.length;  i++) {
+                valores.push(M_copy[i][columna])
+            }
+           data.grafico2 = {
+                nombre: `Topico ${columna + 1} dia 1 con tópicos del día 2`,
+                data: valores
+            }
+            $state.go('grafico2')
+            console.log('columna: ', valores)
+        }
+
+
+
         if (!data.resultado)
             return $state.go("dias")
 
@@ -204,7 +232,11 @@ angular.module('app', ['ui.router', 'nvd3'])
         $scope.topicos_1 = []
         $scope.topicos_2 = []
 
+
+
         var M = data.resultado.M.reverse()
+
+        
 
         var data_mapa = []
         for (var i = 0; i < M.length; i++)
@@ -285,124 +317,50 @@ angular.module('app', ['ui.router', 'nvd3'])
 
         })
     }])
-    .controller('grafico2', ["$scope", function($scope){
+    .controller('grafico2', ["$scope",  "data",  function($scope, data){
 
-        $scope.options = {
-            chart: {
-                type: 'multiBarChart',
-                height: 450,
-                margin : {
-                    top: 20,
-                    right: 20,
-                    bottom: 45,
-                    left: 45
-                },
-                clipEdge: true,
-                //staggerLabels: true,
-                duration: 500,
-                stacked: true,
-                xAxis: {
-                    axisLabel: 'Topico por dia',
-                    showMaxMin: false,
-                    tickFormat: function(d){
-                        return d3.format(',f')(d);
+            $scope.leyenda = data.grafico2.nombre
+
+            console.log(data.grafico2)
+            $scope.options = {
+                    chart: {
+                        type: 'discreteBarChart',
+                        height: 450,
+                        margin : {
+                            top: 20,
+                            right: 20,
+                            bottom: 50,
+                            left: 55
+                        },
+                        x: function(d){return d.label;},
+                        y: function(d){return d.value;},
+                        showValues: true,
+                        valueFormat: function(d){
+                            return d3.format(',.4f')(d);
+                        },
+                        duration: 500,
+                        xAxis: {
+                            axisLabel: 'Topicos'
+                        },
+                        yAxis: {
+                            axisLabel: 'Relación',
+                            axisLabelDistance: -10
+                        }
                     }
-                },
-                yAxis: {
-                    axisLabel: 'Relacion topico',
-                    axisLabelDistance: -20,
-                    tickFormat: function(d){
-                        return d3.format(',.1f')(d);
-                    }
-                }
-            }
-        };
-
-
-
-        var data = [
-            {
-                key: "topico 1",
-                values: [
-                    {
-                        key: "topico 1",
-                        series: 0,
-                        size: 0.1,
-                        x: 0,
-                        y: 1.3
-                    },{
-                        key: "topico 1",
-                        series: 0,
-                        size: 0.8,
-                        x: 1,
-                        y: 0.5
-                    }
-                ]
-            },{
-                key: "topico 2",
-                values: [
-                    {
-                        key: "topico 2",
-                        series: 1,
-                        size: 0.9,
-                        x: 0,
-                        y: 0.1
-                    },{
-                        key: "topico 2",
-                        series: 1,
-                        size: 1,
-                        x: 1,
-                        y: 0.9
-                    }
-                ]
-            }
-        ]
-
-        $scope.data = generateData();
-
-        console.log($scope.data)
-
-        /* Random Data Generator (took from nvd3.org) */
-        function generateData() {
-            return stream_layers(3,50+Math.random()*50,.1).map(function(data, i) {
-                return {
-                    key: `Topico ${i}`,
-                    values: data
                 };
-            });
-        }
 
-        /* Inspired by Lee Byron's test data generator. */
-        function stream_layers(n, m, o) {
-            if (arguments.length < 3) o = 0;
-            function bump(a) {
-                var x = 1 / (.1 + Math.random()),
-                    y = 2 * Math.random() - .5,
-                    z = 10 / (.1 + Math.random());
-                for (var i = 0; i < m; i++) {
-                    var w = (i / m - y) * z;
-                    a[i] += x * Math.exp(-w * w);
+                $scope.data = [
+                    {
+                        key: data.grafico2.nombre,
+                        values: []
+                    }
+                ]
+
+                for (var i = 0; i <  data.grafico2.data.length; i++) {
+                    $scope.data[0].values.push({
+                        'label':  `TP ${i+1}`,
+                        'value': data.grafico2.data[i]
+                    })
                 }
-            }
-            return d3.range(n).map(function() {
-                var a = [], i;
-                for (i = 0; i < m; i++) a[i] = o + o * Math.random();
-                for (i = 0; i < 5; i++) bump(a);
-                return a.map(stream_index);
-            });
-        }
-
-        /* Another layer generator using gamma distributions. */
-        function stream_waves(n, m) {
-            return d3.range(n).map(function(i) {
-                return d3.range(m).map(function(j) {
-                    var x = 20 * j / m - i / 3;
-                    return 2 * x * Math.exp(-.5 * x);
-                }).map(stream_index);
-            });
-        }
-
-        function stream_index(d, i) {
-            return {x: i, y: Math.max(0, d)};
-        }
-}])
+       
+    }])

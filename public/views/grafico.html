@@ -9,7 +9,7 @@
  
       <tbody>
         <tr ng-repeat="topico in topicos_1">
-          <th>TP{{$index + 1}}</th>
+          <th><button ng-click="obtenerColumna($index)">TP{{$index + 1}}</button></th>
           <td ng-repeat='palabra in topico'>{{palabra}}</td>
         </tr>
       </tbody>
@@ -21,7 +21,7 @@
       <h4>Tópicos día 2</h4> 
       <tbody>
         <tr ng-repeat="topico in topicos_2">
-          <th>TP{{$index + 1}}</th>
+          <th><button ng-click="obtenerFila($index)">TP{{$index + 1}}</button></th>
           <td ng-repeat='palabra in topico'>{{palabra}}</td>
         </tr>
       </tbody>
