@@ -1,5 +1,5 @@
 var nj = require('numjs')
-const { JPP, processPromise } = require('../util/process.js')
+const { JPP, processPromise, cleanM } = require('../util/process.js')
 
 process.on('message', function (d) {
 	var k = d.k
@@ -70,9 +70,4 @@ function extraerTopicos (H, setPalabras) {
 		topico.sort((a, b) => b.val - a.val)
 		return topico.slice(0, 7).map(item => item.word)
 	})
-}
-
-//Verifica que una matriz no tenga valores diferentes de numeros
-function cleanM(matrix) {
-	return matrix.map(fila => fila.map(y => (typeof y === 'number') ? y : 0.0000001) )
 }

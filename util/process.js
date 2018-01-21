@@ -412,12 +412,5 @@ function quitarAcentos(cadena) {
 
 //Verifica que una matriz no tenga valores diferentes de numeros
 function cleanM(matrix) {
-	for (var i = 0; i < matrix.length; i++) {
-		for (var j = 0; j < matrix[i].length; j++) {
-			if (typeof matrix[i][j] !== "number")
-				matrix[i][j] = 0.000000001
-		}
-	}
-
-	return matrix
+	return matrix.map(fila => fila.map(y => (typeof y === 'number') ? y : 0.0000001) )
 }

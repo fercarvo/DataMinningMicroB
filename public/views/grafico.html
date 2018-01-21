@@ -1,31 +1,28 @@
-<!--<nvd3 options="options" data="data"></nvd3>-->
-<h3>Visualización tópicos</h3>
-<h4>Lambda: {{lambda}}</h4>
+<div style="height: 400px; min-width: 310px; max-width: 800px; margin: 0 auto">
+    <ui-view></ui-view>
+</div>
+<div >
+  <table class="table table-striped table-bordered">
+    <h4>Tópicos día 1</h4> 
+    <tbody>
+      <tr ng-repeat="topico in topicos_1">
+        <th style="cursor: pointer;background-color:#c4def66b;" title="Grafico tópico {{$index+1}}" ng-click="obtenerColumna($index)">TP{{$index + 1}}</th>
+        <td ng-repeat='palabra in topico'>{{palabra}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
-<div id="container" style="height: 400px; min-width: 310px; max-width: 800px; margin: 0 auto"></div>
-  <div >
-    <table class="table table-striped table-bordered">
-      <h4>Tópicos día 1</h4> 
- 
-      <tbody>
-        <tr ng-repeat="topico in topicos_1">
-          <th><button ng-click="obtenerColumna($index)">TP{{$index + 1}}</button></th>
-          <td ng-repeat='palabra in topico'>{{palabra}}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div >
-    <table class="table table-striped table-bordered">
-      <h4>Tópicos día 2</h4> 
-      <tbody>
-        <tr ng-repeat="topico in topicos_2">
-          <th><button ng-click="obtenerFila($index)">TP{{$index + 1}}</button></th>
-          <td ng-repeat='palabra in topico'>{{palabra}}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+<div >
+  <table class="table table-striped table-bordered">
+    <h4>Tópicos día 2</h4> 
+    <tbody>
+      <tr ng-repeat="topico in topicos_2">
+        <th style="cursor: pointer;background-color:#c4def66b;" title="Grafico tópico {{$index+1}}" ng-click="obtenerFila($index)">TP{{$index + 1}}</th>
+        <td ng-repeat='palabra in topico'>{{palabra}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 

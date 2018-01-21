@@ -7,17 +7,13 @@
     <link rel="stylesheet" type="text/css" href="/styles/vendor/nv.d3.min.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
-    <!-- Our Custom CSS -->
     <link rel="stylesheet" type="text/css" href="/styles/styles.css" />
 
-    <!-- Scrollbar Custom CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.css">
 
 </head>
 <body ng-app="app">
-
     <div class="wrapper">
-            <!-- Sidebar Holder -->
         <nav id="sidebar">
             <div id="dismiss">
                 <i class="glyphicon glyphicon-arrow-left"></i>
@@ -34,16 +30,12 @@
                 <li ui-sref="dias">
                     <a href="">Corpus</a>
                 </li>
-                <li >
-                    <a href="#graficos" data-toggle="collapse" aria-expanded="false">Gŕaficos</a>
-                    <ul class="collapse list-unstyled" id="graficos">
-                        <li ui-sref="grafico1"><a href="">Matriz</a></li>
-                        <li ui-sref="grafico2"><a href="">Evolución</a></li>
-                    </ul>
+                <li ui-sref="grafico">
+                    <a href="">Graficos</a>
                 </li>
                 
                 <li>
-                    <a href="#autores" data-toggle="collapse" aria-expanded="false">Contactos</a>
+                    <a href="" data-toggle="collapse" aria-expanded="false">Contactos</a>
                     <ul class="collapse list-unstyled" id="autores">
                         <li><a href="https://github.com/fercarvo" target="_blank">Edgar Fernando Carvajal</a></li>
                         <li><a href="https://github.com/wjvelez" target="_blank">Washignton Vélez</a></li>
@@ -56,7 +48,6 @@
             </ul>
         </nav>
 
-        <!-- Page Content Holder -->
         <div id="content">
 
             <nav class="navbar navbar-default">
@@ -71,17 +62,16 @@
 
                     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                         <ul class="nav navbar-nav navbar-right">
-                            <li ui-sref="home"><a href="#">Principal</a></li>
-                            <li ui-sref="dias"><a href="#">Corpus</a></li>
-                            <li ui-sref="listener"><a href="#">Listener</a></li>
-                            <li ui-sref="grafico1"><a href="#">Gráfico 1</a></li>
-                            <li ui-sref="grafico2"><a href="#">Gráfico 2</a></li>
+                            <li ui-sref="home"><a href="">Principal</a></li>
+                            <li ui-sref="dias"><a href="">Corpus</a></li>
+                            <li ui-sref="listener"><a href="">Listener</a></li>
+                            <li ui-sref="grafico"><a href="">Gáfico</a></li>
                         </ul>
                     </div>
                 </div>
             </nav>
 
-            <div class="container contenido">
+            <div class="container contenido" style="padding-right: 0px;padding-left: 0px;">
                 <ui-view></ui-view>
             </div>
 
