@@ -146,7 +146,7 @@ angular.module('app', ['ui.router', 'nvd3'])
 
         $scope.obtenerFila = function(fila){
             data.grafico2 = {
-                nombre: `Topico ${fila + 1} del día 2`,
+                nombre: `EL tópico ${fila + 1} del día 2 se derivó de:`,
                 data: M[fila]
             }
             $state.go('grafico.barras')
@@ -157,7 +157,7 @@ angular.module('app', ['ui.router', 'nvd3'])
         $scope.obtenerColumna= function(index){
             var columna = M.reduce((col, fila)=> [...col, fila[index]] , [])
             data.grafico2 = {
-                nombre: `Topico ${index + 1} del día 1`,
+                nombre: `El tópico ${index + 1} del día 1 derivó en:`,
                 data: columna
             }
             $state.go('grafico.barras')
