@@ -196,8 +196,14 @@ angular.module('app', ['ui.router', 'nvd3'])
             yAxis: { categories: topicosY },
             colorAxis: {
                 min: 0,
+                max: 1,
                 minColor: '#FFFFFF',
-                maxColor: Highcharts.getOptions().colors[0]
+                maxColor: (function(){
+                    console.log(Highcharts.getOptions())
+                    console.log(Highcharts.getOptions().colors)
+                    console.log(Highcharts.getOptions().colors[0])
+                    return Highcharts.getOptions().colors[0]
+                })()
             },
             legend: {
                 align: 'right',

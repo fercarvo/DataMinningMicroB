@@ -15,7 +15,7 @@ process.on('uncaughtException', function (err) {
 // corpus = [{word: frecuency}]
 function tf_idf (corpus, word) {
 	
-	var tf = (doc, word) => Math.log(1 + (doc[word]|| 0) ) 
+	var tf = (doc, word) => Math.log(1 + (doc[word]|| 1) ) 
 	var nt = corpus.reduce((nt, doc)=> doc[word] ? ++nt : nt ,1)
 	var idf = Math.log(1 + (corpus.length / nt))
 
