@@ -60,7 +60,7 @@ angular.module('app', ['ui.router', 'nvd3'])
         var contador = []
         $scope.disable = null
         $scope.check = null
-        $scope.k = 6
+        $scope.k = 5
         $scope.lambda = 0.001
 
         $scope.calculo = function (corpus) {
@@ -85,7 +85,7 @@ angular.module('app', ['ui.router', 'nvd3'])
             peticion = ""
         }
 
-        $scope.generar = function (k, lambda) {
+        $scope.generar = async function (k, lambda) {
             if (contador.length !== 2)
                 return alert("Por favor, seleccione dos corpus a procesar");
 
@@ -102,19 +102,15 @@ angular.module('app', ['ui.router', 'nvd3'])
             peticion = `${data.params.id1}/${data.params.id2}/${data.params.k}/${data.params.lambda}`;
             waitingDialog.show('Procesando corpus, por favor espere');
 
-            requestJPP(peticion, data.params)
-                .then(res => {
-                    data.resultado = res.data;
-                    if (!res.data.M)
-                        return alert("No se ha obtenido la informacion correcta"), waitingDialog.hide();
-                    $state.go("grafico")
-                    waitingDialog.hide()
-
-                })
-                .catch(e => {
-                    waitingDialog.hide()
-                    alert(`Error: ${e}`)
-                })               
+            try {
+                var res = await requestJPP(peticion, data.params);
+                data.resultado = res.data;
+                if (res.data.M)
+                    return $state.go("grafico");
+                alert("No se ha obtenido la informacion correcta")
+                
+            } catch (e) { alert(`Error: ${e}`) }
+            finally { waitingDialog.hide() }             
         }
 
         $http.get("/corpus", { cache: true})
@@ -167,9 +163,6 @@ angular.module('app', ['ui.router', 'nvd3'])
     }])
     .controller('grafico.matrix', ["$scope", "$state", "data", function ($scope, $state, data){
 
-        $scope.k = data.params.k
-        $scope.lambda = data.params.lambda;        
-
         if (!data.resultado)
             return $state.go("dias")
 
@@ -198,12 +191,7 @@ angular.module('app', ['ui.router', 'nvd3'])
                 min: 0,
                 max: 1,
                 minColor: '#FFFFFF',
-                maxColor: (function(){
-                    console.log(Highcharts.getOptions())
-                    console.log(Highcharts.getOptions().colors)
-                    console.log(Highcharts.getOptions().colors[0])
-                    return Highcharts.getOptions().colors[0]
-                })()
+                maxColor: Highcharts.getOptions().colors[0]
             },
             legend: {
                 align: 'right',
@@ -236,6 +224,7 @@ angular.module('app', ['ui.router', 'nvd3'])
 
         $scope.options = {
             chart: {
+                //yDomain: [0, 1.1],
                 type: 'discreteBarChart',
                 height: 380,
                 margin : {
@@ -264,9 +253,15 @@ angular.module('app', ['ui.router', 'nvd3'])
             values: []
         }]
 
-        data.grafico2.data.forEach((value, i) => {
+        data.grafico2.data.map(val => (val > 0.5) ? val: 0).forEach((value, i) => {
             $scope.data[0].values.push({label: `TP ${i+1}`, value})
-        })       
+        })
+
+        if (data.grafico2.data.every(val => val <= 1))
+            $scope.options.chart.yDomain = [0,1]
+        else
+            $scope.options.chart.yDomain = [0,1.1]
+
     }])
     .controller("home", [function () {
 

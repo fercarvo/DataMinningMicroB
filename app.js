@@ -1,5 +1,4 @@
 var express = require('express')
-var favicon = require('serve-favicon')
 var logger = require('morgan')
 var cookieParser = require('cookie-parser')
 var bodyParser = require('body-parser')
@@ -25,27 +24,22 @@ app.set('views', __dirname + '/views')
 app.set('view engine', 'ejs')
 
 app.use((req, res, next) => {
-
 	if (req.headers['content-type'])
-		res.set('Content-Type', req.headers['content-type'])
+		res.set('Content-Type', req.headers['content-type']);
 
 	var date = new Date()
 	var secs = 1
 
 	res.set('Cache-Control', `private, max-age=${secs}`)
 	res.set('Date', date.toUTCString())
-
 	date.setSeconds(date.getSeconds() + secs)
-
 	res.set('Expires', date.toUTCString())
-
 	next()
 })
 
 app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(favicon(`${__dirname}/public/images/favicon.ico`))
 app.use(cookieParser())
 app.use(express.static(__dirname + '/public'))
 

@@ -17,7 +17,7 @@ async function getJPP(corpus1, corpus2, k, lambda) {
 	console.timeEnd(`X of ${corpus1}/${corpus2}`)
 
 	var data_1 = arr_data[0]
-	var data_2 = arr_data[1]
+	var data_2 = arr_data[1] //X_2 [{map, values}, {map, values}]
 
 	var resultado = await processPromise(`${__dirname}/cp_jpp.js`, {data_1, data_2, k, lambda})
 	return resultado
@@ -28,7 +28,7 @@ async function getX(corpus_id) {
 	documentos = documentos.map(doc => doc.toObject())
 
 	if (!documentos.some(doc => doc.tweets.length > 70))
-		return reject(`${corpus_id} no posee tweets`)
+		throw new Error(`${corpus_id} no posee tweets`)
 
 	var data = await processPromise(`${__dirname}/cp_corpus_2.js`, documentos)
 	return data

@@ -15,18 +15,28 @@ var calculo_jpp = new Map() //Cache del JPP
 
 //Se obtienen todos los corpus recopilados
 router.get("/corpus", async function (req, res, next){
-	var docs = await Corpus.find({}, 'fecha compressed').exec()
-	docs = docs.map(d=> d.toObject()).sort((d1, d2)=> d1.fecha - d2.fecha)
-	res.json(docs)
+	try {
+		var docs = await Corpus.find({}, 'fecha compressed').exec()
+		docs = docs.map(d=> d.toObject()).sort((d1, d2)=> d1.fecha - d2.fecha)
+		res.json(docs)
+
+	} catch (e) { next(e) }
 })
 
 
 //Se obtienen todos los documentos de un corpus
 router.get("/corpus/:id", async function (req, res, next){
-	var docs = await Document.find({_corpus: req.params.id}, 'identificador tweets').exec()
-	docs = docs.map(d => d.toObject()).sort((d1, d2)=> d1.identificador-d2.identificador)
-	docs.forEach(d => {d.tweets=d.tweets.length})
-	res.json(docs)
+	try {
+		await Corpus.findOne({_id: req.params.id}).exec()
+		var docs = await Document.find({_corpus: req.params.id}, 'identificador tweets').exec()
+		docs = docs.map(d => d.toObject()).sort((d1, d2)=> d1.identificador-d2.identificador)
+
+		for (var d of docs)
+			d.tweets = d.tweets.length;
+
+		res.json(docs)
+		
+	} catch (e) { next(e) }
 })
 
 
@@ -50,20 +60,16 @@ io.on('connection', function (socket) {
 			en_proceso.push(req.peticion)
 
 			var resultado = await getJPP(cp1, cp2, k, lambda)
-
 			calculo_jpp.set(req.peticion, resultado) //Se agrega el resultado al cache
-			var index = en_proceso.indexOf(req.peticion)
-
-			if (index > -1)
-				en_proceso.splice(index, 1) //Se elimina la peticion de la cola de espera
-
 			io.emit("jpp", {peticion: req.peticion, data: resultado})
 
-		} catch (e) {
+		} catch (error) {
+			io.emit("jpp", {peticion: req.peticion, error: 'Error de procesamiento'})
+			console.log(error)
+		} finally {
 			var index = en_proceso.indexOf(req.peticion)
 			if (index > -1)
 				en_proceso.splice(index, 1) //Se elimina la peticion de la cola de espera
-			io.emit("jpp", {peticion: req.peticion, error: e})
 		}
 	})
 })
@@ -78,12 +84,11 @@ router.get("/jpp/:id1/:id2/:k/:lambda", function (req, res, next) {
 	if (cache)
 		return res.json(cache)
 
-	return next(new Error("Información aun en procesamiento, espere"))
+	throw new Error("Información aun en procesamiento, espere")
 })
 
 
 //depurar('5a6529813ab2006845004c45')
-
 async function depurar (id){
 	try {
 		var corpus = await Corpus.findOne({_id: id}).exec();
@@ -116,6 +121,7 @@ async function depurar (id){
 		console.log('Error', e)
 	}
 }
+
 
 /*
 function depurar (id) {

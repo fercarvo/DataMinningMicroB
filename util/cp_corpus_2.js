@@ -5,6 +5,7 @@ process.on('message', function (documentos) {
 	var setPalabras = new Set() //Palabras sin repetir del corpus
 
 	documentos.forEach(doc => {
+		var valuesDoc = new Set()
 		var map = {}
 		var docWords = doc.tweets.reduce((words, t) => [...words, ...cleaner(t) ], []) //Todas las palabras del doc
 
@@ -15,10 +16,12 @@ process.on('message', function (documentos) {
 				map[word] = 1
 		})
 
-		for (var key in map)
+		for (var key in map) {
 			setPalabras.add(key);
+			valuesDoc.add(map[key])
+		}
 
-		corpus.push(map)
+		corpus.push({map, values: [...valuesDoc].sort().pop()})
 	})
 	setPalabras = [...setPalabras]
 	process.send({setPalabras, corpus})		
