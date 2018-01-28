@@ -17,7 +17,7 @@ mongoose.connect(`mongodb://${db.user}:${db.password}@ds135486.mlab.com:35486/${
 	}).catch(function (error) {
 		console.log("Error MongoDB mlab", error)
 
-	})
+	}) 
 
 // view engine setup
 app.set('views', __dirname + '/views')
