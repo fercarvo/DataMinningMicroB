@@ -66,6 +66,7 @@ function findIndicesOfMax(arr, count) {
 	return new_arr.slice(0, count).map(it => it.index)
 }
 
+//Extrae los terminos con mayor tfidf de cada tópico
 function extraerTopicos (H, setPalabras) { //de H
 	return H.map(function (topico){
 		topico = topico.map((val, i) => {return {val, word: setPalabras[i]} })
@@ -74,6 +75,7 @@ function extraerTopicos (H, setPalabras) { //de H
 	})
 }
 
+//De cada tópico, elige los 10 mejores documentos y extrae sus palabras con mayor frecuencia.
 function extraerDocTopicos (W, corpus) {
 	var to_doc = nj.array(W).T.tolist() //Topico x Doc
 	to_doc = to_doc.map(t => findIndicesOfMax(t, 10)) //n mejores documentos
