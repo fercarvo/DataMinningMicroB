@@ -1,10 +1,8 @@
-const { stopwords } = require('../DB/stopwords.js')
+const { stopwords } = require('../data.js')
 const snowball = require('node-snowball')
-const fs = require('fs')
 const { fork } = require('child_process')
 const nj = require('numjs')
 const moment = require('moment')
-const Event = require('events');
 
 module.exports = {
 	processTweet,
@@ -13,8 +11,6 @@ module.exports = {
 	processPromise,
 	JPP,
 	quitarAcentos,
-	eachParallel, 
-	eachSeries,
 	cleanM,
 	isToday,
 	each
@@ -44,120 +40,9 @@ function isToday (date) {
 	return false
 }
 
-//Ejecuta en serie todas las operaciones
-function eachSeries(array, fn, concurrency) {
-	return new Promise(function (resolve, reject) {
-
-		var resolved_data = []
-
-		if (concurrency>1) {
-
-			var slices = []
-			var i = 0
-
-			var hilos = new Array(concurrency).fill([]) //numero de "hilos o concurrencias"
-
-			while (array.length>0) {
-				hilos[i%concurrency] = [...hilos[i%concurrency], array.shift()]
-				i++
-			}
-
-			console.log("Hilos en paralelo", hilos.length)
-
-			eachParallel(hilos, function (slice, next, error) {
-
-				console.log(`Lote de ${slice.length} elementos en serie`)
-				
-				eachSeries(slice, fn, null)
-					.then(data => {
-						resolved_data = [...resolved_data, ...data]
-						next()
-					})
-					.catch(e => error(e) )
-
-			}, null)
-			.then(() => resolve(resolved_data) )
-			.catch(e => reject(e) )
-
-		} else {
-
-			var index = 0
-
-			fn(array[index], next, error)
-
-			function next(data) {
-				resolved_data.push( data )
-
-				if (++index < array.length)
-					fn(array[index], next, error)
-				else
-					resolve(resolved_data)
-			}
-
-			function error(error) {
-				return reject(error)
-			}
-		}
-	})
-}
-
-//Ejecuta en paralelo todas las operaciones
-// fn (obj, next, error)
-
-function eachParallel(array, fn, concurrency) {
-	return new Promise(function (resolveGlobal, rejectGlobal) {
-
-		if (concurrency>1) {
-
-			var slices = []
-			var array_length = array.length
-			var i = 0
-
-			while (i <= array_length) {
-				slices = [...slices, array.slice(i, i+concurrency)]
-				i += concurrency
-			}
-
-			console.log("slices.length", slices.length)
-
-			eachSeries(slices, (slice, next, error)=>{
-
-				console.log(`Lote de ${slice.length} elementos en paralelo`)
-				
-				eachParallel(slice, fn, null)
-					.then(data => next(data) )
-					.catch(e => error(e) )
-			
-
-			})
-			.then(data => resolveGlobal(data) )
-			.catch(e => rejectGlobal(e) )
-
-		} else {
-
-			var resolved_data = []
-			var resolved = 0
-
-			for (obj of array )
-				fn(obj, resolveObj, error)
-
-			function resolveObj(data) {
-				resolved_data.push( data )
-
-				if (++resolved >= array.length)
-					return resolveGlobal(resolved_data)
-			}
-
-			function error(error) {
-				return rejectGlobal(error)
-			}
-		}
-	})
-}
-
 //Concurrency == 1, serie
 //Concurrency == Infinity, todo en paralelo
-function each(array, fn, concurrency) {
+function each(array, fn, concurrency = 1) {
 	return new Promise((resolve, reject) => {
 		concurrency = (concurrency > 0) ? concurrency : 1
 		var used = 0
@@ -165,16 +50,16 @@ function each(array, fn, concurrency) {
 		var resolved_data = []
 
 		while (array.length > 0 && used < concurrency) {
-			fn(array.pop(), next, error), used++
+			fn(array.pop(), next, error); used++
 		}
 
 		function next(data) {
 			resolved_data.push( data )
 			used--
 			if (resolved_data.length == size)
-				return resolve(resolved_data)
+				return resolve(resolved_data);
 			if (used >= concurrency || array.length == 0)
-				return
+				return;
 			used++ 
 			fn(array.pop(), next, error)
 		}
@@ -209,7 +94,7 @@ function cleaner(string) {
 	}
 
 	if (!string || string.length<=10)
-		return []
+		return [];
 
 	try {
 		string = string.toLowerCase(); //todo a minusculas
@@ -322,8 +207,6 @@ function JPP (X, R, k, alpha, lambda, epsilon, maxiter){
 
 
 	while ((Math.abs(prevObj-Obj) > epsilon) && (itNum <= maxiter)) {
-		//console.log(Obj, H)
-
 		J = dot(M, R) // Multiplicacion matricial
 
 		//W =  W .* ( M_1  ./ max(W*(M_2),eps) ); % eps = 2^(-52)

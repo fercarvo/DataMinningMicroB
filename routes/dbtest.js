@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const mongoose = require("mongoose")
+const fs = require('fs')
 
 const { getJPP, getDocuments } = require("../util/mongodb_data.js")
 const { eachSeries, eachParallel, processPromise } = require('../util/process.js')
@@ -87,6 +88,88 @@ router.get("/jpp/:id1/:id2/:k/:lambda", function (req, res, next) {
 	throw new Error("Información aun en procesamiento, espere")
 })
 
+async function foo() {	
+	/*var id = "5a74fb944d3bf819ead0075e"
+	var documentos = await Document.find({_corpus: id}).exec()
+
+	for (doc of documentos)
+		await Tweet.remove({_document: doc._id});
+
+	await Document.remove({_corpus: id}).exec()
+	await Corpus.remove({_id: id})
+
+	console.log("Removido corpus", id)*/
+
+	var arr_corpus = await Corpus.find({compressed: true}, 'fecha compressed').exec();
+	arr_corpus = arr_corpus.map(c => c.toObject());
+
+	await allCorpusToFile(arr_corpus);
+
+	for (corpus of arr_corpus)
+		console.log(await corpusToFile(corpus._id));
+}
+
+foo()
+.then(() => console.log("ENd to file"))
+.catch(e => console.log("Error foo", e))
+
+function allCorpusToFile(data) {
+	return new Promise(resolve => {
+		fs.writeFile(`${__dirname}/../DB/corpus.json`, JSON.stringify(data), err => {
+			if (err) 
+				throw new Error(err);
+
+			resolve();
+		})
+	})
+}
+
+
+//Guarda un corpus con sus documentos a file.json
+async function corpusToFile (c_id) {
+	var fileName = `${__dirname}/../DB/corpus/${c_id}.json`;
+	try {
+		await new Promise((good, error) => { 
+			fs.access(fileName, fs.constants.F_OK, err => {
+				if (err)
+					error();
+				else
+					good();
+			})
+		})
+		//Si existe el archivo
+		return "El corpus ya existe en json"
+
+	} catch (e) {
+		try {
+			var corpus = await Corpus.findOne({_id: c_id}).exec()
+
+			if (!corpus || !corpus.compressed)
+				throw new Error("No existe corpus o no esta comprimido");
+
+			var docs = await Document.find({_corpus: corpus._id}, 'identificador tweets').exec()
+
+			if (docs.length === 0)
+				throw new Error("No existe data en el corpus");
+
+			docs = docs.map(d => d.toObject()).sort((d1, d2)=> d1.identificador-d2.identificador)
+
+			var result = await new Promise(resolve => {
+				fs.writeFile(fileName, JSON.stringify(docs), err => {
+					if (err) 
+						throw new Error(err);
+
+					resolve()
+				})
+			})
+
+			return `File saved ${corpus._id}.json`
+		} catch (e) {
+			return `Error: ${e}`
+		}
+	}
+}
+
 
 //depurar('5a6529813ab2006845004c45')
 async function depurar (id){
@@ -121,71 +204,5 @@ async function depurar (id){
 		console.log('Error', e)
 	}
 }
-
-
-/*
-function depurar (id) {
-	Corpus.findOne({_id: id}).exec((error, corpus)=> {
-		if (error)
-			return console.log("error", error);
-
-		if (corpus.compressed)
-			return console.log('Ya esta comprimido')
-		
-		console.log('corpus', corpus)
-		Document.find({_corpus: corpus._id}).exec((e_find_doc, docs)=> {
-			if (e_find_doc)
-				return console.log("e_find_doc docs", e_find_doc);
-
-			eachSeries(docs, function(doc, next, error){
-
-				Tweet.find({_document: doc._id}).exec((e_find_t, tweets)=> {
-					if (e_find_t) {
-						console.log("Error encontrar tweets")
-						return error(e_find_t)
-					}
-					tweets = tweets.map(t => t.toObject())
-					tweets = tweets.reduce((arr, t)=> [...arr, t.tweet], []) //["asdasdasd", "asdasd"]
-					doc.tweets = tweets
-					doc.save((e_save_doc, doc)=> {
-
-						if (e_save_doc) {
-							console.log('No se pudo actualizar el doc')
-							return error(e_save_doc)
-						}
-
-						console.log('new doc', doc)
-
-						Tweet.remove({_document: doc._id}).exec(e => {
-							if (e)
-								return error(e)
-
-							console.log('Eliminados tweets de', doc._id)
-							Tweet.find({_document: doc._id}).exec((err, tweets)=> {
-								if (err)
-									return console.log('No se pudo buscar tweets eliminados', err);
-
-								console.log('No deben haber tweets', tweets)
-								next()
-							})
-						})
-					})
-				})
-
-			}).then(bien => {
-
-				corpus.compressed = true
-				corpus.save((error, c)=> {
-					if (error)
-						console.log('No se pudo actualizar el corpus a compressed')
-
-					console.log(c, 'Se elimino todo tweet y actualizo corpus')
-				})
-			})
-			.catch(e => console.log('Error', e))
-		})
-	})
-}
-*/
 
 module.exports = router;
